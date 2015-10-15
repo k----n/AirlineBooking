@@ -32,7 +32,7 @@ A simple airline booking system implemented in Python using Oracle SQL.
 * airline_agents(email, name)
 
 ## Documentation
-System documentation can be cound in the [wiki](https://github.com/k----n/AirlineBooking/wiki).
+System documentation can be found in the [wiki](https://github.com/k----n/AirlineBooking/wiki).
 
 ## License
 Licensed under Apache 2.0 License.
