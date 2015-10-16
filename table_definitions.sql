@@ -1,15 +1,3 @@
--- Drop tables and views first (in case they are there)
-  drop table airline_agents;
-  drop table bookings;
-  drop table tickets;
-  drop table passengers;
-  drop table users;
-  drop table flight_fares;
-  drop table fares;
-  drop table sch_flights;
-  drop table flights;
-  drop table airports;
-
 create table airports (
   acode		char(3),
   name		char(30),
@@ -89,4 +77,3 @@ create table airline_agents (
   primary key (email),
   foreign key (email) references users
 );
-

@@ -1,0 +1,10 @@
+drop table airline_agents;
+drop table bookings;
+drop table tickets;
+drop table passengers;
+drop table users;
+drop table flight_fares;
+drop table fares;
+drop table sch_flights;
+drop table flights;
+drop table airports;
