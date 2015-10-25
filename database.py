@@ -15,10 +15,12 @@
 #
 
 import sys
-import cx_Oracle  # the package used for accessing Oracle in Python
 import getpass
-import menu
+
+import cx_Oracle  # the package used for accessing Oracle in Python
+
 import login
+import menu
 import bookings
 import user
 

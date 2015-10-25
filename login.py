@@ -15,11 +15,13 @@
 #
 
 import getpass  # the package for getting password from user without displaying it
-import database
-import menu
 import sys
+
+import database
 import user
 import verify
+import menu
+
 
 #TODO comment
 

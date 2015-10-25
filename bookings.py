@@ -14,8 +14,9 @@
 #   limitations under the License.
 #
 import database
-import menu
 import verify
+import menu
+
 
 # TODO add comments and implement making a booking
 
@@ -123,6 +124,14 @@ def list(connection, user):
                     query = "DELETE FROM tickets WHERE tno = '{}' and name = '{}'".format(str(rows[entry][0]),
                                                                                           str(rows[entry][1]))
                     cursor.execute(query)
+
+                    query = "SELECT email FROM tickets"
+                    users = database.read(query, cursor)
+
+                    if user not in users:
+                        query = "DELETE FROM passengers WHERE email = '{}' and name = '{}'".format(user,
+                                                                                              str(rows[entry][1]))
+                        cursor.execute(query)
 
                     connection.commit()
 

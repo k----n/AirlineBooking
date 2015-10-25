@@ -14,9 +14,9 @@
 #   limitations under the License.
 #
 import database
+import verify
 import menu
 from verify import isTimeFormat
-import verify
 
 
 class User:

@@ -15,7 +15,9 @@
 #
 
 import sys
+
 import cx_Oracle  # the package used for accessing Oracle in Python
+
 import database
 import menu
 

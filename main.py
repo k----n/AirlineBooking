@@ -18,10 +18,11 @@ import database
 import login
 import menu
 
+
 def main():
     connection_url = "@gwynne.cs.ualberta.ca:1521/CRS"
-    database_spec = "table_definitions.sql"
-    drop_tables = "drop_tables.sql"
+    database_spec = "sql/table_definitions.sql"
+    drop_tables = "sql/drop_tables.sql"
 
     # connect to database
     connection = database.connect(connection_url)
