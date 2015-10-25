@@ -11,8 +11,8 @@ A simple airline booking system implemented in Python using Oracle SQL.
 6. [x] Logout
 
 ### Airline Agent Functions
-1. Record flight departure
-2. Record flight arrival
+1. [x] Record flight departure
+2. [x] Record flight arrival
 
 ### Booking Functions (at least 1)
 1. Search and book round trips
