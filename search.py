@@ -79,11 +79,11 @@ def search(connection):
             valid_acodes.append(acode)
     if (source.upper() and destination.upper() in valid_acodes):
         search_query= "select flightno1, src, dst, price, gf.layover*24, seats, to_char(dep_time,'HH24:MI'), to_char(arr_time,'HH24:MI') from good_flights gf, airports a1, airports a2\
-        where gf.src='"+source+"' and gf.dst='"+destination+"'"
+        where gf.src='"+source+"' and gf.dst='"+destination+"' order by price asc, layover asc"
     else:
         search_query = "select flightno1, a1.acode, a2.acode, price, gf.layover*24, seats, to_char(dep_time,'HH24:MI'), to_char(arr_time,'HH24:MI') from good_flights gf, airports a1, airports a2\
         where (a1.name like '%"+source+"%' or a1.city like '%"+source+"%' and gf.src = a1.acode) and\
-        (a2.name like '%"+destination+"%' or a2.city like '%"+destination+"%' and gf.dst = a2.acode)"
+        (a2.name like '%"+destination+"%' or a2.city like '%"+destination+"%' and gf.dst = a2.acode) order by price asc, layover asc"
 
     cursor.execute(search_query)
     rows = cursor.fetchall()
@@ -96,37 +96,12 @@ def search(connection):
         print("Price: $", row[3])
         print("Number of seats:", row[5])
         if type(row[4]) == type(None):
+            print ("Number of connections: 0    DIRECT FLIGHT")
             print ("No layover time")
         else:
+            print("Number of connections: 1")
             print("Layover time:", row[4], "hours")
         print("\n")
-
-
-    """
-    search_query= "select distinct flightno1, src, dst, price from good_flights gf, airports a1, airports a2\
-                    where (gf.src='"+source+"'or (a1.name like '%"+source+"%' or a1.city like '%"+source+"%' and gf.src = a1.acode)) and\
-                    (gf.dst='"+destination+"'or (a2.name like '%"+destination+"%' or a2.city like '%"+destination+"%' and gf.dst = a2.acode))"
-
-   #  where a1.acode='"+source+"' or a2.acode='"+destination+"\
-    #'or a1.name like '%"+source+"%' or a2.name like '%"+destination+"%\
-   # 'or a1.city like '%"+source+"%' or a2.city like '%"+destination+"%'"
-
-
-
-
-
-
-
-
-    cursor.execute(search_query)
-    rows = cursor.fetchall()
-    for row in rows:
-        print("Flight number:", row[0])
-        print("Source airport code:", row[1])
-        print("Destination airport code:", row[2])
-        print("Price: $", row[3])
-        print("\n")
-    """
 
 # get username
 user = input("Username [%s]: " % getpass.getuser())
