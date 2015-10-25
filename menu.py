@@ -13,26 +13,68 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
+import os
+
+def main(user):
+    clearScreen()
+    if user.agent:
+        print(
+                "Main Menu\n" +
+                "-------------------------\n" +
+                "Select an option:\n" +
+                "0 - Search/Book a flight\n" +
+                "1 - List existing booking(s)\n" +
+                "2 - Logout\n" +
+                "3 - Record flight departure\n" +
+                "4 - Record flight arrival\n" +
+                "-------------------------\n")
+        entries = [x for x in range(5)]
+        while True:
+            option = input("Option: ")
+
+            if option == "0":
+                return 0
+
+            elif option == "1":
+                return 1
+
+            elif option == "2":
+                return 2
+
+            elif option == "3":
+                return 3
+
+            elif option == "4":
+                return 4
+
+            elif option not in entries:
+                print("Invalid input, try again\n")
+    else:
+        print(
+            "Main Menu\n" +
+            "-------------------------\n" +
+            "Select an option:\n" +
+            "0 - Search/Book a flight\n" +
+            "1 - List existing booking(s)\n" +
+            "2 - Logout\n" +
+            "-------------------------\n")
+        entries = [x for x in range(3)]
+        while True:
+            option = input("Option: ")
+
+            if option == "0":
+                return 0
+
+            elif option == "1":
+                return 1
+
+            elif option == "2":
+                return 2
+
+            elif option not in entries:
+                print("Invalid input, try again\n")
 
 
-def main():
-    entries = range(5)
-    option = ""
-    while option not in entries:
-        print("-------------------------\n\n" +
-              "Select an option:\n" +
-              "0 - Search for flight" +
-              "1 - Book a flight" +
-              "2 - List existing booking(s)" +
-              "3 - Cancel booking(s)" +
-              "4 - Logout" +
-              "-------------------------\n"
-        )
-
-        option = input("Option: ")
-
-        if option not in entries:
-            print("Invalid input, try again\n")
-
-    return option
+def clearScreen():
+    os.system('cls' if os.name == 'nt' else 'clear')
 

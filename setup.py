@@ -16,8 +16,8 @@
 
 import sys
 import cx_Oracle  # the package used for accessing Oracle in Python
-import getpass  # the package for getting password from user without displaying it
 import database
+import menu
 
 
 def execSQL(sqlFile, cursor):
@@ -58,6 +58,7 @@ def checkTable(dropTablesfile, cursor):
 
 def createTable(mode = 0, connection = None, database_spec = None, drop_tables = None):
     if mode == 1:
+        menu.clearScreen()
         print("\nAirline Booking Setup")
 
         # connect to database
@@ -71,23 +72,6 @@ def createTable(mode = 0, connection = None, database_spec = None, drop_tables =
                 execSQL(database_spec, curs)
 
                 connection.commit()
-
-                # insert single queries
-                # data = [('Quadbury', 101, 7.99, 0, 0)]
-                # cursInsert = connection.cursor()
-                # cursInsert.bindarraysize = 1
-                # cursInsert.setinputsizes(32, int, float, int, int)
-                # cursInsert.executemany("INSERT INTO TOFFEES(T_NAME, SUP_ID, PRICE, SALES, TOTAL) "
-                #                        "VALUES (:1, :2, :3, :4, :5)", data);
-                # cursInsert.close()
-
-                # read from a table
-                # # executing a query
-                # curs.execute("SELECT * from TOFFEES")
-                # # get all data and print it
-                # rows = curs.fetchall()
-                # for row in rows:
-                #     print(row)
 
                 database.close(None,curs)
 

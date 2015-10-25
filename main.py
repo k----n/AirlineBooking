@@ -18,22 +18,29 @@ import database
 import login
 import menu
 
+
 def main():
     connection_url = "@gwynne.cs.ualberta.ca:1521/CRS"
-    database_spec = "table_definitions.sql"
-    drop_tables = "drop_tables.sql"
+    database_spec = "sql/table_definitions.sql"
+    drop_tables = "sql/drop_tables.sql"
 
     # connect to database
     connection = database.connect(connection_url)
 
     # mode 0 to ignore, 1 for fresh setup
-    setup.createTable(1, connection, database_spec, drop_tables)
+    setup.createTable(0, connection, database_spec, drop_tables)
 
-    # login screen
-    login.login(connection)
+    while True:
+        # login screen
+        user = login.login(connection)
+        option = ""
 
-    # main menu
-    database.process(menu.main())
+        while option != 2:
+            # main menu
+            option = menu.main(user)
+            database.process(option, connection, user)
+
+        database.process(option, connection, user)
 
 
 if __name__ == "__main__":
