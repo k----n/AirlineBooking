@@ -20,6 +20,7 @@ import getpass
 import menu
 import login
 import bookings
+import user
 
 
 def connect(connection_url):
@@ -53,11 +54,15 @@ def connect(connection_url):
         print(sys.stderr, "Oracle message:", error.message)
 
 
-def process(option, connection, user):
+def process(option, connection, current_user):
     if option == 1:
-        bookings.list(connection,user)
+        bookings.list(connection,str(current_user.email))
     if option == 2:
-        login.logout(connection, user)
+        login.logout(connection, str(current_user.email))
+    if option == 3:
+        user.record_dep(connection)
+    if option == 4:
+        user.record_arr(connection)
 
 
 def cursor(connection = None):

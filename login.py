@@ -18,9 +18,12 @@ import getpass  # the package for getting password from user without displaying 
 import database
 import menu
 import sys
+import user
 
 def login(connection):
     cursor = database.cursor(connection)
+
+    current_user = user.User()
 
     menu.clearScreen()
     print(
@@ -60,8 +63,8 @@ def login(connection):
             valid = database.read(query, cursor)
 
             if valid[0]:
-                database.close(cursor)
-                return email
+                current_user.email = email
+                break
             else:
                 print("Incorrect email/pass!")
 
@@ -99,8 +102,8 @@ def login(connection):
 
             connection.commit()
 
-            database.close(cursor)
-            return email
+            current_user.email = email
+            break
 
         elif option == "2":
             menu.clearScreen()
@@ -109,7 +112,22 @@ def login(connection):
         elif option not in entries:
             print("Invalid input, try again")
 
+    # check if airline agent
+    query = "SELECT email FROM airline_agents"
+    cursor.execute(query)
+    rows = cursor.fetchall()
+
+    agents = list()
+    for row in rows:
+        for x in row:
+            agents.append(x)
+
+    if str(current_user.email).ljust(20) in agents:
+        current_user.agent = True
+
     database.close(cursor)
+    return current_user
+
 
 
 def logout(connection, user):

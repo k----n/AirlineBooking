@@ -36,7 +36,7 @@ def main():
 
         while option != 2:
             # main menu
-            option = menu.main()
+            option = menu.main(user)
             database.process(option, connection, user)
 
         database.process(option, connection, user)
