@@ -16,28 +16,78 @@
 
 import getpass  # the package for getting password from user without displaying it
 import database
+import menu
+import sys
 import cx_Oracle
 
 def login(connection):
     cursor = database.cursor(connection)
-    check = "n"
 
-    print("Login to Airline Booking System\n")
+    menu.clearScreen()
+    print(
+        "Login to Airline Booking System\n" +
+        "-------------------------\n" +
+        "Select an option:\n\n" +
+        "0 - Login\n" +
+        "1 - Create Account\n" +
+        "2 - Exit\n" +
+        "-------------------------"
+        )
 
-    email = input("Email: ")
-
-    data = database.read("SELECT email FROM USERS", cursor)
-
-    if email not in data:
-        check = input("User does not exist...\nEnter 'y' to create user: ")
-
+    entries = [x for x in range(3)]
     while True:
-        if check == "y":
-            password = getpass.getpass()
-            createUser(email, password, cursor)
-            break
+        option = input("\nOption: ")
 
-    #database.read("SELECT email FROM USERS", cursor)
+        if option == "0":
+            email = ""
+            password = ""
+            while len(email) > 20 or len(email) == 0:
+                email = input("\nEmail: ").strip().lower()
+                if len(email) > 20 or len(email) == 0:
+                    print("Invalid Email Length, Try Again")
+
+            users = database.read("SELECT email FROM USERS", cursor)
+            if email not in users:
+                print("User does not exist!")
+
+            else:
+                while len(password) > 4 or len(password) == 0:
+                    password = getpass.getpass("Password: ")
+                    if len(password) > 4 or len(password) == 0:
+                        print("Invalid Password length, Try Again")
+
+                users_pass = database.read("SELECT pass FROM USERS", cursor)
+
+                if password != users_pass[users.index(email)]:
+                    print("Incorrect password!")
+
+                elif password == users_pass[users.index(email)]:
+                    break
+
+        elif option == "1":
+            email = ""
+            password = ""
+            while len(email) > 20 or len(email) == 0:
+                email = input("\nNew Email: ").strip().lower()
+                if len(email) > 20 or len(email) == 0:
+                    print("Invalid Email Length, Try Again")
+
+            while len(password) > 4 or len(password) == 0:
+                password = getpass.getpass("New Password: ")
+                if len(password) > 4 or len(password) == 0:
+                    print("Invalid Password length, Try Again")
+
+            createUser(email, password, cursor)
+
+            connection.commit()
+
+        elif option == "2":
+            menu.clearScreen()
+            sys.exit()
+
+        elif option not in entries:
+            print("Invalid input, try again\n")
+
 
     database.close(cursor)
 

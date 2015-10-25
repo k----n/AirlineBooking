@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
-
+import os
 
 def main():
     entries = range(5)
@@ -35,4 +35,7 @@ def main():
             print("Invalid input, try again\n")
 
     return option
+
+def clearScreen():
+    os.system('cls' if os.name == 'nt' else 'clear')
 

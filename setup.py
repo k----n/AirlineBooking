@@ -16,8 +16,8 @@
 
 import sys
 import cx_Oracle  # the package used for accessing Oracle in Python
-import getpass  # the package for getting password from user without displaying it
 import database
+import menu
 
 
 def execSQL(sqlFile, cursor):
@@ -58,6 +58,7 @@ def checkTable(dropTablesfile, cursor):
 
 def createTable(mode = 0, connection = None, database_spec = None, drop_tables = None):
     if mode == 1:
+        menu.clearScreen()
         print("\nAirline Booking Setup")
 
         # connect to database

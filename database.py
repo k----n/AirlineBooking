@@ -17,39 +17,42 @@
 import sys
 import cx_Oracle  # the package used for accessing Oracle in Python
 import getpass
+import menu
 
 
 def connect(connection_url):
-        print("\nConnect to Airline Booking Database\n")
+    menu.clearScreen()
+    print("Connect to Airline Booking Database\n")
 
-        # get username
-        user = input("Oracle Username: ")
-        if not user:
-            user = getpass.getuser()
+    # get username
+    user = input("Oracle Username: ")
+    if not user:
+        user = getpass.getuser()
 
-        # get password
-        pw = getpass.getpass()
+    # get password
+    pw = getpass.getpass()
 
-        # The URL we are connnecting to
-        conString = '' + user + '/' + pw + connection_url
+    # The URL we are connnecting to
+    conString = '' + user + '/' + pw + connection_url
 
-        print("\nConnecting...\n")
+    print("\nConnecting...\n")
 
-        try:
-                # Establish a connection in Python
-                connection = cx_Oracle.connect(conString)
+    try:
+            # Establish a connection in Python
+            connection = cx_Oracle.connect(conString)
 
-                print("Connected!")
+            print("Connected!")
 
-                return connection
+            return connection
 
-        except cx_Oracle.DatabaseError as exc:
-            error, = exc.args
-            print(sys.stderr, "Oracle code:", error.code)
-            print(sys.stderr, "Oracle message:", error.message)
+    except cx_Oracle.DatabaseError as exc:
+        error, = exc.args
+        print(sys.stderr, "Oracle code:", error.code)
+        print(sys.stderr, "Oracle message:", error.message)
 
 def process(option):
     pass
+
 
 def cursor(connection = None):
     return connection.cursor()
@@ -70,7 +73,9 @@ def read(query = None, cursor = None):
         cursor.execute(query)
         # get all data and print it
         rows = cursor.fetchall()
+        result = list()
         for row in rows:
-            print(row)
+            for x in row:
+                result.append(x.strip())
 
-        return rows
+        return result

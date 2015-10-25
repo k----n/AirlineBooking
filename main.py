@@ -27,7 +27,7 @@ def main():
     connection = database.connect(connection_url)
 
     # mode 0 to ignore, 1 for fresh setup
-    setup.createTable(1, connection, database_spec, drop_tables)
+    setup.createTable(0, connection, database_spec, drop_tables)
 
     # login screen
     login.login(connection)
