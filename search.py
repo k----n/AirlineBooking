@@ -56,10 +56,10 @@ def search(connection):
         where a1.dst=a2.src and a1.arr_time +1.5/24 <=a2.dep_time and a1.arr_time +5/24 >=a2.dep_time\
         group by a1.src, a2.dst, a1.dep_date, a1.flightno, a2.flightno, a2.dep_time, a1.arr_time"
     cursor.execute(good_connections_query)
-    good_flights_query = "create view good_flights as select flightno1, flightno2, layover, price, src, dst, dep_date\
-                            from ((select flightno as flightno1, NULL as flightno2, NULL as layover, dep_date, dst, src, price\
+    good_flights_query = "create view good_flights as select flightno1, flightno2, layover, price, src, dst, dep_date, seats, dep_time, arr_time\
+                            from ((select flightno as flightno1, NULL as flightno2, NULL as layover, dep_date, dst, src, price, seats, dep_time, arr_time\
                                     from available_flights) union\
-                                (select flightno1, flightno2, layover, dep_date, dst, src, price\
+                                (select flightno1, flightno2, layover, dep_date, dst, src, price, NULL as seats, NULL as dep_time, NULl as arr_time\
                                 from good_connections))"
     cursor.execute(good_flights_query)
     """
@@ -70,6 +70,39 @@ def search(connection):
     (a2.acode='"+source+"'or a2.name like '%"+source+"%' or a2.city like '%"+source+"%')"
     """
 
+    get_acodes_query = "select acode from airports"
+    cursor.execute(get_acodes_query)
+    rows = cursor.fetchall()
+    valid_acodes = list()
+    for row in rows:
+        for acode in row:
+            valid_acodes.append(acode)
+    if (source.upper() and destination.upper() in valid_acodes):
+        search_query= "select flightno1, src, dst, price, gf.layover*24, seats, to_char(dep_time,'HH24:MI'), to_char(arr_time,'HH24:MI') from good_flights gf, airports a1, airports a2\
+        where gf.src='"+source+"' and gf.dst='"+destination+"'"
+    else:
+        search_query = "select flightno1, a1.acode, a2.acode, price, gf.layover*24, seats, to_char(dep_time,'HH24:MI'), to_char(arr_time,'HH24:MI') from good_flights gf, airports a1, airports a2\
+        where (a1.name like '%"+source+"%' or a1.city like '%"+source+"%' and gf.src = a1.acode) and\
+        (a2.name like '%"+destination+"%' or a2.city like '%"+destination+"%' and gf.dst = a2.acode)"
+
+    cursor.execute(search_query)
+    rows = cursor.fetchall()
+    for row in rows:
+        print("Flight number:", row[0])
+        print("Source airport code:", row[1])
+        print("Destination airport code:", row[2])
+        print("Departure Time: ",row[6])
+        print("Arrival Time: ",row[7])
+        print("Price: $", row[3])
+        print("Number of seats:", row[5])
+        if type(row[4]) == type(None):
+            print ("No layover time")
+        else:
+            print("Layover time:", row[4], "hours")
+        print("\n")
+
+
+    """
     search_query= "select distinct flightno1, src, dst, price from good_flights gf, airports a1, airports a2\
                     where (gf.src='"+source+"'or (a1.name like '%"+source+"%' or a1.city like '%"+source+"%' and gf.src = a1.acode)) and\
                     (gf.dst='"+destination+"'or (a2.name like '%"+destination+"%' or a2.city like '%"+destination+"%' and gf.dst = a2.acode))"
@@ -93,6 +126,7 @@ def search(connection):
         print("Destination airport code:", row[2])
         print("Price: $", row[3])
         print("\n")
+    """
 
 # get username
 user = input("Username [%s]: " % getpass.getuser())
