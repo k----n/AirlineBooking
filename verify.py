@@ -54,3 +54,10 @@ def isTimeFormat(input):
         return True
     except ValueError:
         return False
+
+def isDateFormat(input):
+    try:
+        time.strptime(input, '%d-%m-%Y')
+        return True
+    except ValueError:
+        return False
