@@ -54,9 +54,9 @@ def connect(connection_url):
 
 
 def process(option, connection, user):
-    if option == 2:
+    if option == 1:
         bookings.list(connection,user)
-    if option == 4:
+    if option == 2:
         login.logout(connection, user)
 
 

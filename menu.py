@@ -21,13 +21,11 @@ def main():
             "Main Menu\n" +
             "-------------------------\n" +
             "Select an option:\n" +
-            "0 - Search for flight\n" +
-            "1 - Book a flight\n" +
-            "2 - List existing booking(s)\n" +
-            "3 - Cancel booking(s)\n" +
-            "4 - Logout\n" +
+            "0 - Search/Book a flight\n" +
+            "1 - List existing booking(s)\n" +
+            "2 - Logout\n" +
             "-------------------------\n")
-    entries = [x for x in range(5)]
+    entries = [x for x in range(3)]
     while True:
         option = input("Option: ")
 
@@ -39,12 +37,6 @@ def main():
 
         elif option == "2":
             return 2
-
-        elif option == "3":
-            return 3
-
-        elif option == "4":
-            return 4
 
         elif option not in entries:
             print("Invalid input, try again\n")

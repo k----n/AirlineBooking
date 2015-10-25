@@ -90,6 +90,7 @@ def list(connection, user):
                 print("Flight Destination: " + str(row[1]))
                 print("Seat No: " + str(row[2]))
                 print("Fare Type: " + str(row[3]))
+                # TODO add bags allowed, fare description
 
             while True:
                 nope = input("\n")

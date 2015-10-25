@@ -34,7 +34,7 @@ def main():
         user = login.login(connection)
         option = ""
 
-        while option != 4:
+        while option != 2:
             # main menu
             option = menu.main()
             database.process(option, connection, user)
