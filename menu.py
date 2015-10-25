@@ -15,7 +15,7 @@
 #
 import os
 
-def main(user):
+def main():
     clearScreen()
     print(
             "Main Menu\n" +
