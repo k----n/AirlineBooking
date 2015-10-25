@@ -16,7 +16,7 @@
 
 import database
 import login
-
+import setup
 import sys
 import cx_Oracle # the package used for accessing Oracle in Python
 import getpass # the package for getting password from user without displaying it
@@ -35,22 +35,69 @@ def search(connection):
     destination = str(input("Please enter a destination: "))
     #departure_date= input("Please enter a departure date: ")
 
-    #search_query = "select "+source+" "+destination+" "+departure_date+" from airports"
-    #search_query = "select "+source+" "+destination+" from airports"
 
-    search_query = "select acode, name, city from airports where acode='"+source+"' or acode='"+destination+"\
-    'or name like '%"+source+"%' or name like '%"+destination+"%\
-    'or city like '%"+source+"%' or city like '%"+destination+"%'"
-    #print (search_query)
+    """
+    #ASSUME THE VIEWs EXISTS
+    #queries sourced from assignment 2 solutions
+    available_flights_query = "create view available_flights(flightno,dep_date, src,dst,dep_time,arr_time,fare,seats,price) as\
+        select f.flightno, sf.dep_date, f.src, f.dst, f.dep_time+(trunc(sf.dep_date)-trunc(f.dep_time)),\
+        f.dep_time+(trunc(sf.dep_date)-trunc(f.dep_time))+(f.est_dur/60+a2.tzone-a1.tzone)/24,\
+        fa.fare, fa.limit-count(tno), fa.price\
+        from flights f, flight_fares fa, sch_flights sf, bookings b, airports a1, airports a2\
+        where f.flightno=sf.flightno and f.flightno=fa.flightno and f.src=a1.acode and\
+        f.dst=a2.acode and fa.flightno=b.flightno(+) and fa.fare=b.fare(+) and sf.dep_date=b.dep_date(+)\
+        group by f.flightno, sf.dep_date, f.src, f.dst, f.dep_time, f.est_dur,a2.tzone, a1.tzone, fa.fare, fa.limit, fa.price\
+        having fa.limit-count(tno) > 0"
+    cursor.execute(available_flights_query)
+    good_connections_query ="create view good_connections (src,dst,dep_date,flightno1,flightno2, layover,price) as\
+        select a1.src, a2.dst, a1.dep_date, a1.flightno, a2.flightno, a2.dep_time-a1.arr_time,\
+        min(a1.price+a2.price)\
+        from available_flights a1, available_flights a2\
+        where a1.dst=a2.src and a1.arr_time +1.5/24 <=a2.dep_time and a1.arr_time +5/24 >=a2.dep_time\
+        group by a1.src, a2.dst, a1.dep_date, a1.flightno, a2.flightno, a2.dep_time, a1.arr_time"
+    cursor.execute(good_connections_query)
+    good_flights_query = "create view good_flights as select flightno1, flightno2, layover, price, src, dst, dep_date\
+                            from ((select flightno as flightno1, NULL as flightno2, NULL as layover, dep_date, dst, src, price\
+                                    from available_flights) union\
+                                (select flightno1, flightno2, layover, dep_date, dst, src, price\
+                                from good_connections))"
+    cursor.execute(good_flights_query)
+    """
+
+    """
+    search_query = "select distinct flightno1, a1.acode, a2.acode from good_flights,airports a1, airports a2\
+    where (a1.acode='"+source+"'or a1.name like '%"+source+"%' or a1.city like '%"+source+"%') and\
+    (a2.acode='"+source+"'or a2.name like '%"+source+"%' or a2.city like '%"+source+"%')"
+    """
+
+    search_query= "select distinct flightno1, src, dst, price from good_flights gf, airports a1, airports a2\
+                    where (gf.src='"+source+"'or (a1.name like '%"+source+"%' or a1.city like '%"+source+"%' and gf.src = a1.acode)) and\
+                    (gf.dst='"+destination+"'or (a2.name like '%"+destination+"%' or a2.city like '%"+destination+"%' and gf.dst = a2.acode))"
+
+   #  where a1.acode='"+source+"' or a2.acode='"+destination+"\
+    #'or a1.name like '%"+source+"%' or a2.name like '%"+destination+"%\
+   # 'or a1.city like '%"+source+"%' or a2.city like '%"+destination+"%'"
+
+
+
+
+
+
+
+
     cursor.execute(search_query)
     rows = cursor.fetchall()
     for row in rows:
-        print(row)
+        print("Flight number:", row[0])
+        print("Source airport code:", row[1])
+        print("Destination airport code:", row[2])
+        print("Price: $", row[3])
+        print("\n")
 
 # get username
 user = input("Username [%s]: " % getpass.getuser())
 if not user:
-	user=getpass.getuser()
+    user=getpass.getuser()
 
 # get password
 pw = getpass.getpass()
