@@ -35,6 +35,27 @@ def search(connection):
     destination = str(input("Please enter a destination: "))
     #departure_date= input("Please enter a departure date: ")
 
+    f = open('drop_views.sql')
+    sql_commands = f.read()
+    sql_commands = sql_commands.split(';')
+    view_names = [x.strip() for x in sql_commands]
+    view_names = [x.replace("drop view ","").upper() for x in view_names].pop()
+    print(view_names)
+
+    count = 0
+
+    cursor.execute("select view_name from user_views")
+    output_rows = cursor.fetchall()
+    output_rows = [''.join(i) for i in output_rows]
+
+    for line in output_rows:
+        if line in view_names:
+            count +=1
+
+    if count == len(view_names):
+        for x in range(0, len(sql_commands)-1):
+            cursor.execute(sql_commands[x])
+
 
     """
     #ASSUME THE VIEWs EXISTS
@@ -49,6 +70,7 @@ def search(connection):
         group by f.flightno, sf.dep_date, f.src, f.dst, f.dep_time, f.est_dur,a2.tzone, a1.tzone, fa.fare, fa.limit, fa.price\
         having fa.limit-count(tno) > 0"
     cursor.execute(available_flights_query)
+
     good_connections_query ="create view good_connections (src,dst,dep_date,flightno1,flightno2, layover,price) as\
         select a1.src, a2.dst, a1.dep_date, a1.flightno, a2.flightno, a2.dep_time-a1.arr_time,\
         min(a1.price+a2.price)\
@@ -56,6 +78,7 @@ def search(connection):
         where a1.dst=a2.src and a1.arr_time +1.5/24 <=a2.dep_time and a1.arr_time +5/24 >=a2.dep_time\
         group by a1.src, a2.dst, a1.dep_date, a1.flightno, a2.flightno, a2.dep_time, a1.arr_time"
     cursor.execute(good_connections_query)
+
     good_flights_query = "create view good_flights as select flightno1, flightno2, layover, price, src, dst, dep_date, seats, dep_time, arr_time\
                             from ((select flightno as flightno1, NULL as flightno2, NULL as layover, dep_date, dst, src, price, seats, dep_time, arr_time\
                                     from available_flights) union\
