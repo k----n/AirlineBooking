@@ -45,31 +45,50 @@ def login(connection):
                 if len(email) > 20 or len(email) == 0:
                     print("Invalid Email Length, Try Again")
 
-            users = database.read("SELECT email FROM USERS", cursor)
-            if email not in users:
-                print("User does not exist!")
+            while len(password) > 4 or len(password) == 0:
+                password = getpass.getpass("Password: ")
+                if len(password) > 4 or len(password) == 0:
+                    print("Invalid Password length, Try Again")
 
+            query = "Select count(*)\
+                    from users\
+                    where email = :user_email\
+                    and pass = :user_pass"
+            query = query.replace(":user_email", "'"+email+"'")
+            query = query.replace(":user_pass", "'"+password+"'")
+
+            valid = database.read(query, cursor)
+
+            if valid[0]:
+                database.close(cursor)
+                return email
             else:
-                while len(password) > 4 or len(password) == 0:
-                    password = getpass.getpass("Password: ")
-                    if len(password) > 4 or len(password) == 0:
-                        print("Invalid Password length, Try Again")
+                print("Incorrect email/pass!")
 
-                users_pass = database.read("SELECT pass FROM USERS", cursor)
-
-                if password != users_pass[users.index(email)]:
-                    print("Incorrect password!")
-
-                elif password == users_pass[users.index(email)]:
-                    break
 
         elif option == "1":
+            query = "SELECT email FROM USERS"
+            cursor.execute(query)
+            rows = cursor.fetchall()
+
+            users = list()
+            for row in rows:
+                for x in row:
+                    users.append(x)
+
             email = ""
             password = ""
-            while len(email) > 20 or len(email) == 0:
+            while True:
                 email = input("\nNew Email: ").strip().lower()
                 if len(email) > 20 or len(email) == 0:
                     print("Invalid Email Length, Try Again")
+
+                elif email.ljust(20) in users:
+                    print("User already exists, Try Again")
+
+                else:
+                    break
+
 
             while len(password) > 4 or len(password) == 0:
                 password = getpass.getpass("New Password: ")
@@ -80,7 +99,8 @@ def login(connection):
 
             connection.commit()
 
-            break
+            database.close(cursor)
+            return email
 
         elif option == "2":
             menu.clearScreen()
@@ -90,7 +110,7 @@ def login(connection):
             print("Invalid input, try again")
 
     database.close(cursor)
-    return email
+
 
 def logout(connection, user):
     cursor = database.cursor(connection)

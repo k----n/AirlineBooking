@@ -17,21 +17,18 @@ import os
 
 def main(user):
     clearScreen()
-
+    print(
+            "Main Menu\n" +
+            "-------------------------\n" +
+            "Select an option:\n" +
+            "0 - Search for flight\n" +
+            "1 - Book a flight\n" +
+            "2 - List existing booking(s)\n" +
+            "3 - Cancel booking(s)\n" +
+            "4 - Logout\n" +
+            "-------------------------\n")
     entries = [x for x in range(5)]
     while True:
-        print(
-              "Main Menu\n" +
-              "-------------------------\n" +
-              "Select an option:\n" +
-              "0 - Search for flight\n" +
-              "1 - Book a flight\n" +
-              "2 - List existing booking(s)\n" +
-              "3 - Cancel booking(s)\n" +
-              "4 - Logout\n" +
-              "-------------------------\n"
-        )
-
         option = input("Option: ")
 
         if option == "0":
@@ -50,7 +47,7 @@ def main(user):
             return 4
 
         elif option not in entries:
-            print("Invalid input, try again")
+            print("Invalid input, try again\n")
 
 def clearScreen():
     os.system('cls' if os.name == 'nt' else 'clear')

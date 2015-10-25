@@ -19,6 +19,7 @@ import cx_Oracle  # the package used for accessing Oracle in Python
 import getpass
 import menu
 import login
+import bookings
 
 
 def connect(connection_url):
@@ -53,6 +54,8 @@ def connect(connection_url):
 
 
 def process(option, connection, user):
+    if option == 2:
+        bookings.list(connection,user)
     if option == 4:
         login.logout(connection, user)
 
@@ -79,6 +82,6 @@ def read(query = None, cursor = None):
         result = list()
         for row in rows:
             for x in row:
-                result.append(x.strip())
+                result.append(x)
 
         return result
