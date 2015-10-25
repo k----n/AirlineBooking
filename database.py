@@ -18,6 +18,7 @@ import sys
 import cx_Oracle  # the package used for accessing Oracle in Python
 import getpass
 import menu
+import login
 
 
 def connect(connection_url):
@@ -50,8 +51,10 @@ def connect(connection_url):
         print(sys.stderr, "Oracle code:", error.code)
         print(sys.stderr, "Oracle message:", error.message)
 
-def process(option):
-    pass
+
+def process(option, connection, user):
+    if option == 4:
+        login.logout(connection, user)
 
 
 def cursor(connection = None):

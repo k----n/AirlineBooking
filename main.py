@@ -29,11 +29,17 @@ def main():
     # mode 0 to ignore, 1 for fresh setup
     setup.createTable(0, connection, database_spec, drop_tables)
 
-    # login screen
-    login.login(connection)
+    while True:
+        # login screen
+        user = login.login(connection)
+        option = ""
 
-    # main menu
-    database.process(menu.main())
+        while option != 4:
+            # main menu
+            option = menu.main(user)
+            database.process(option, connection, user)
+
+        database.process(option, connection, user)
 
 
 if __name__ == "__main__":

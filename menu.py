@@ -15,26 +15,42 @@
 #
 import os
 
-def main():
-    entries = range(5)
-    option = ""
-    while option not in entries:
-        print("-------------------------\n\n" +
+def main(user):
+    clearScreen()
+
+    entries = [x for x in range(5)]
+    while True:
+        print(
+              "Main Menu\n" +
+              "-------------------------\n" +
               "Select an option:\n" +
-              "0 - Search for flight" +
-              "1 - Book a flight" +
-              "2 - List existing booking(s)" +
-              "3 - Cancel booking(s)" +
-              "4 - Logout" +
+              "0 - Search for flight\n" +
+              "1 - Book a flight\n" +
+              "2 - List existing booking(s)\n" +
+              "3 - Cancel booking(s)\n" +
+              "4 - Logout\n" +
               "-------------------------\n"
         )
 
         option = input("Option: ")
 
-        if option not in entries:
-            print("Invalid input, try again\n")
+        if option == "0":
+            return 0
 
-    return option
+        elif option == "1":
+            return 1
+
+        elif option == "2":
+            return 2
+
+        elif option == "3":
+            return 3
+
+        elif option == "4":
+            return 4
+
+        elif option not in entries:
+            print("Invalid input, try again")
 
 def clearScreen():
     os.system('cls' if os.name == 'nt' else 'clear')

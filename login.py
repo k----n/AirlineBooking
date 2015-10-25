@@ -18,7 +18,6 @@ import getpass  # the package for getting password from user without displaying 
 import database
 import menu
 import sys
-import cx_Oracle
 
 def login(connection):
     cursor = database.cursor(connection)
@@ -81,14 +80,27 @@ def login(connection):
 
             connection.commit()
 
+            break
+
         elif option == "2":
             menu.clearScreen()
             sys.exit()
 
         elif option not in entries:
-            print("Invalid input, try again\n")
+            print("Invalid input, try again")
 
+    database.close(cursor)
+    return email
 
+def logout(connection, user):
+    cursor = database.cursor(connection)
+
+    update = "Update users set last_login = sysdate where email = :user_email"
+    update = update.replace(":user_email", "'"+user+"'")
+
+    cursor.execute(update)
+
+    connection.commit()
     database.close(cursor)
 
 
