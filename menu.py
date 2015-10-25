@@ -13,28 +13,26 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
-import setup
-import database
-import login
-import menu
+
 
 def main():
-    connection_url = "@gwynne.cs.ualberta.ca:1521/CRS"
-    database_spec = "table_definitions.sql"
-    drop_tables = "drop_tables.sql"
+    entries = range(5)
+    option = ""
+    while option not in entries:
+        print("-------------------------\n\n" +
+              "Select an option:\n" +
+              "0 - Search for flight" +
+              "1 - Book a flight" +
+              "2 - List existing booking(s)" +
+              "3 - Cancel booking(s)" +
+              "4 - Logout" +
+              "-------------------------\n"
+        )
 
-    # connect to database
-    connection = database.connect(connection_url)
+        option = input("Option: ")
 
-    # mode 0 to ignore, 1 for fresh setup
-    setup.createTable(1, connection, database_spec, drop_tables)
+        if option not in entries:
+            print("Invalid input, try again\n")
 
-    # login screen
-    login.login(connection)
+    return option
 
-    # main menu
-    database.process(menu.main())
-
-
-if __name__ == "__main__":
-    main()

@@ -13,28 +13,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
-import setup
-import database
-import login
-import menu
 
-def main():
-    connection_url = "@gwynne.cs.ualberta.ca:1521/CRS"
-    database_spec = "table_definitions.sql"
-    drop_tables = "drop_tables.sql"
+def record_dep():
+    pass
 
-    # connect to database
-    connection = database.connect(connection_url)
-
-    # mode 0 to ignore, 1 for fresh setup
-    setup.createTable(1, connection, database_spec, drop_tables)
-
-    # login screen
-    login.login(connection)
-
-    # main menu
-    database.process(menu.main())
-
-
-if __name__ == "__main__":
-    main()
+def record_arr():
+    pass

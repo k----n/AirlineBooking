@@ -31,9 +31,11 @@ def login(connection):
     if email not in data:
         check = input("User does not exist...\nEnter 'y' to create user: ")
 
-    if check == "y":
-        password = getpass.getpass()
-        createUser(email, password,cursor)
+    while True:
+        if check == "y":
+            password = getpass.getpass()
+            createUser(email, password, cursor)
+            break
 
     #database.read("SELECT email FROM USERS", cursor)
 

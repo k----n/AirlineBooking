@@ -48,6 +48,8 @@ def connect(connection_url):
             print(sys.stderr, "Oracle code:", error.code)
             print(sys.stderr, "Oracle message:", error.message)
 
+def process(option):
+    pass
 
 def cursor(connection = None):
     return connection.cursor()
