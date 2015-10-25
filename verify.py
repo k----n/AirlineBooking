@@ -13,6 +13,44 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
+import time
 
-def char20():
-    pass
+
+def char20(input):
+    try:
+        if len(input) > 20 or len(input) == 0:
+            return False
+        else:
+            return True
+
+    except:
+        return False
+
+
+def char4(input):
+    try:
+        if len(input) > 4 or len(input) == 0:
+            return False
+        else:
+            return True
+
+    except:
+        return False
+
+
+def rowSelection(entry, max):
+    try:
+        if 1 <= int(entry) <= max and max!=0:
+            return True
+        else:
+            return False
+    except:
+        return False
+
+
+def isTimeFormat(input):
+    try:
+        time.strptime(input, '%H:%M')
+        return True
+    except ValueError:
+        return False

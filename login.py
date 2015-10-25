@@ -19,6 +19,9 @@ import database
 import menu
 import sys
 import user
+import verify
+
+#TODO comment
 
 def login(connection):
     cursor = database.cursor(connection)
@@ -43,22 +46,17 @@ def login(connection):
         if option == "0":
             email = ""
             password = ""
-            while len(email) > 20 or len(email) == 0:
+            while not(verify.char20(email)):
                 email = input("\nEmail: ").strip().lower()
-                if len(email) > 20 or len(email) == 0:
+                if not(verify.char20(email)):
                     print("Invalid Email Length, Try Again")
 
-            while len(password) > 4 or len(password) == 0:
+            while not(verify.char4(password)):
                 password = getpass.getpass("Password: ")
-                if len(password) > 4 or len(password) == 0:
+                if not(verify.char4(password)):
                     print("Invalid Password length, Try Again")
 
-            query = "Select count(*)\
-                    from users\
-                    where email = :user_email\
-                    and pass = :user_pass"
-            query = query.replace(":user_email", "'"+email+"'")
-            query = query.replace(":user_pass", "'"+password+"'")
+            query = "SELECT count(*) from users where email = '{}' and pass = '{}'".format(email,password)
 
             valid = database.read(query, cursor)
 
@@ -68,22 +66,15 @@ def login(connection):
             else:
                 print("Incorrect email/pass!")
 
-
         elif option == "1":
             query = "SELECT email FROM USERS"
-            cursor.execute(query)
-            rows = cursor.fetchall()
-
-            users = list()
-            for row in rows:
-                for x in row:
-                    users.append(x)
+            users = database.read(query, cursor)
 
             email = ""
             password = ""
             while True:
                 email = input("\nNew Email: ").strip().lower()
-                if len(email) > 20 or len(email) == 0:
+                if not(verify.char20(email)):
                     print("Invalid Email Length, Try Again")
 
                 elif email.ljust(20) in users:
@@ -92,10 +83,9 @@ def login(connection):
                 else:
                     break
 
-
-            while len(password) > 4 or len(password) == 0:
+            while not(verify.char4(password)):
                 password = getpass.getpass("New Password: ")
-                if len(password) > 4 or len(password) == 0:
+                if not(verify.char4(password)):
                     print("Invalid Password length, Try Again")
 
             createUser(email, password, cursor)
@@ -114,13 +104,7 @@ def login(connection):
 
     # check if airline agent
     query = "SELECT email FROM airline_agents"
-    cursor.execute(query)
-    rows = cursor.fetchall()
-
-    agents = list()
-    for row in rows:
-        for x in row:
-            agents.append(x)
+    agents = database.read(query, cursor)
 
     if str(current_user.email).ljust(20) in agents:
         current_user.agent = True
@@ -133,9 +117,7 @@ def login(connection):
 def logout(connection, user):
     cursor = database.cursor(connection)
 
-    update = "Update users set last_login = sysdate where email = :user_email"
-    update = update.replace(":user_email", "'"+user+"'")
-
+    update = "Update users set last_login = sysdate where email = '{}'".format(user)
     cursor.execute(update)
 
     connection.commit()

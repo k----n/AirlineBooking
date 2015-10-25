@@ -15,9 +15,13 @@
 #
 import database
 import menu
+import verify
+
+# TODO add comments and implement making a booking
 
 def make():
     pass
+
 
 def list(connection, user):
     while True:
@@ -29,15 +33,13 @@ def list(connection, user):
               "Select Row Number for more details or press enter to go back\n\n")
 
         query = "select  t.tno, t.name, to_char(b.dep_date, 'dd-mon-yy') as dep_date, t.paid_price, b.flightno \
-                from bookings b, tickets t \
-                where b.tno = t.tno and t.email = :user_email"
-        query = query.replace(":user_email", "'"+user+"'")
+                from bookings b, tickets t where b.tno = t.tno and t.email = '{}'".format(user)
 
         cursor.execute(query)
 
         rows = cursor.fetchall()
 
-        count = 1
+        count = 1   # row number
 
         print(str("Row").ljust(6) + str("Tno").ljust(6) + str("Passenger Name").ljust(21) + str("Dep Date").ljust(12)\
                   +str("Price").ljust(8)+str("Fl No").ljust(8))
@@ -57,24 +59,21 @@ def list(connection, user):
         if entry == "":
             break
 
-        elif not(entry.isnumeric()):
+        elif not(verify.rowSelection(entry, len(rows))):
             print("Invalid entry, Try Again")
 
-        elif 1 <= int(entry) <= len(rows) and len(rows)!=0:
-            entry = int(entry)-1
+        elif verify.rowSelection(entry, len(rows)):
+            entry = int(entry)-1 # actual position in list of rows
+
             menu.clearScreen()
+
             print("Detailed Booking\n\n" + \
                   "Press enter to go back or enter 'cancel' to cancel flight\n")
-            query = "select  f.src, f.dst, b.seat, b.fare\
-                    from bookings b, flights f, tickets t\
-                    where b.tno = t.tno\
-                    and b.flightno = f.flightno\
-                    and b.tno = :ticket\
-                    and b.flightno = :flight\
-                    and b.dep_date = to_date(:depdate, 'dd-mon-yy')"
-            query = query.replace(":ticket", "'"+str(rows[entry][0])+"'")
-            query = query.replace(":flight", "'"+str(rows[entry][4])+"'")
-            query = query.replace(":depdate", "'"+str(rows[entry][2])+"'")
+
+            query = "select  f.src, f.dst, b.seat, b.fare from bookings b, flights f, tickets t where b.tno = t.tno\
+                    and b.flightno = f.flightno and b.tno = '{}' and b.flightno = '{}'\
+                    and b.dep_date = to_date('{}', 'dd-mon-yy')".format(str(rows[entry][0]), str(rows[entry][4]),
+                                                                        str(rows[entry][2]))
 
             cursor.execute(query)
 
@@ -90,7 +89,18 @@ def list(connection, user):
                 print("Flight Destination: " + str(row[1]))
                 print("Seat No: " + str(row[2]))
                 print("Fare Type: " + str(row[3]))
-                # TODO add bags allowed, fare description
+
+            query = "select f.descr, ff.bag_allow from flight_fares ff, fares f where ff.flightno = '{}'\
+                    and ff.fare = '{}' and ff.fare = f.fare".format(str(rows[entry][4]), str(row[3]))
+
+            cursor.execute(query)
+
+            additional_rows = cursor.fetchall()
+
+            for add_row in additional_rows:
+                print("Fare Description: " + str(add_row[0]))
+                print("Bags Allowed: " + str(add_row[1]))
+
 
             while True:
                 nope = input("\n")

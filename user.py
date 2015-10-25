@@ -15,8 +15,8 @@
 #
 import database
 import menu
-import time
-
+from verify import isTimeFormat
+import verify
 
 
 class User:
@@ -33,14 +33,12 @@ def record_dep(connection):
         print("Record Depature Time\n\n" + \
               "Select Row Number to Change Departure Time For Scheduled flight or press enter to go back\n\n")
 
-        query = "select s.flightno, to_char(s.dep_date, 'dd-mon-yy') as dep_date \
-                from sch_flights s"
-
+        query = "select s.flightno, to_char(s.dep_date, 'dd-mon-yy') as dep_date from sch_flights s"
         cursor.execute(query)
 
         rows = cursor.fetchall()
 
-        count = 1
+        count = 1 # row count
 
         print(str("Row").ljust(6)+str("Fl No").ljust(8)+str("Dep Date").ljust(12))
         x = "-" * 26
@@ -58,12 +56,14 @@ def record_dep(connection):
         if entry == "":
             break
 
-        elif not(entry.isnumeric()):
+        elif not(verify.rowSelection(entry, len(rows))):
             print("Invalid entry, Try Again")
 
-        elif 1 <= int(entry) <= len(rows) and len(rows)!=0:
-            entry = int(entry)-1
+        elif verify.rowSelection(entry, len(rows)):
+            entry = int(entry)-1 # actual row position
+
             menu.clearScreen()
+
             print("Change Departure Time\n\n" + \
                   "Press enter to go back or enter 'hh24:mi' to change departure time\n")
             print("Flight No: " + str(rows[entry][0]))
@@ -128,10 +128,10 @@ def record_arr(connection):
         if entry == "":
             break
 
-        elif not(entry.isnumeric()):
+        elif not(verify.rowSelection(entry, len(rows))):
             print("Invalid entry, Try Again")
 
-        elif 1 <= int(entry) <= len(rows) and len(rows)!=0:
+        elif verify.rowSelection(entry, len(rows)):
             entry = int(entry)-1
             menu.clearScreen()
             print("Change Arrival Time\n\n" + \
@@ -162,9 +162,3 @@ def record_arr(connection):
 
 
 
-def isTimeFormat(input):
-    try:
-        time.strptime(input, '%H:%M')
-        return True
-    except ValueError:
-        return False
