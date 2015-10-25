@@ -33,8 +33,9 @@ def search(connection):
     #cursor = database.cursor(connection)
     source = str(input("Please enter a source: "))
     destination = str(input("Please enter a destination: "))
-    #departure_date= input("Please enter a departure date: ")
+    departure_date= input("Please enter a departure date (DD-MM-YYYY): ")
 
+    get_existing_view_query = "select view_name from user_views"
 
     """
     #ASSUME THE VIEWs EXISTS
@@ -79,7 +80,7 @@ def search(connection):
             valid_acodes.append(acode)
     if (source.upper() and destination.upper() in valid_acodes):
         search_query= "select flightno1, src, dst, price, gf.layover*24, seats, to_char(dep_time,'HH24:MI'), to_char(arr_time,'HH24:MI') from good_flights gf, airports a1, airports a2\
-        where gf.src='"+source+"' and gf.dst='"+destination+"' order by price asc, layover asc"
+        where gf.src='"+source+"' and gf.dst='"+destination+"' and to_char(dep_date, 'DD-MM-YYYY')='"+departure_date+"' order by price asc, layover asc"
     else:
         search_query = "select flightno1, a1.acode, a2.acode, price, gf.layover*24, seats, to_char(dep_time,'HH24:MI'), to_char(arr_time,'HH24:MI') from good_flights gf, airports a1, airports a2\
         where (a1.name like '%"+source+"%' or a1.city like '%"+source+"%' and gf.src = a1.acode) and\
