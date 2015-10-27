@@ -68,7 +68,7 @@ def create_views(cursor):
     cursor.execute(query)
 
 
-def search_flights(connection):
+def search_flights(connection, user):
     cursor = database.cursor(connection)
     create_views(cursor)
     connection.commit()
@@ -143,39 +143,44 @@ def search_flights(connection):
     x = "-" * 90
     print(x)
 
+    all_rows = list()
+    for row in search_query_af_rows:
+        all_rows.append([row[0],"N/A",row[2],row[3],row[4].strftime('%H:%M'),row[5].strftime('%H:%M'),"0","Direct",int(row[8]),row[7]])
+
+    for row in search_query_gc_rows:
+        all_rows.append([row[3],row[4],row[0],row[1],row[10].strftime('%H:%M'),row[11].strftime('%H:%M'),"1",row[5],row[6],row[7]])
+
     if len(search_query_af_rows) == 0 and len(search_query_gc_rows) == 0:
         print("No flights found")
 
     elif sort == "0":
-        price_rows = list()
-        for row in search_query_af_rows:
-            price_rows.append([row[0],"N/A",row[2],row[3],row[4].strftime('%H:%M'),row[5].strftime('%H:%M'),"0","Direct",int(row[8]),row[7]])
+        all_rows.sort(key=lambda x:x[8])
 
-        for row in search_query_gc_rows:
-            price_rows.append([row[3],row[4],row[0],row[1],row[10].strftime('%H:%M'),row[11].strftime('%H:%M'),"1",row[5],row[6],row[7]])
-
-        price_rows.sort(key=lambda x:x[8])
-
-        for row in price_rows:
+        for row in all_rows:
             print(str(count).ljust(6) + str(row[0]).ljust(9) + str(row[1]).ljust(9) + str(row[2]).ljust(5) + str(row[3]).ljust(5) + str(row[4]).ljust(10)\
                 + str(row[5]).ljust(10) + str(row[6]).ljust(7) + str(row[7]).ljust(14) + str(row[8]).ljust(8)\
                 + str(row[9]).ljust(7))
 
+            count += 1
+
 
     elif sort == "1":
-        for row in search_query_af_rows:
-            print(str(count).ljust(6) + str(row[0]).ljust(9) + str("N/A").ljust(9) + str(row[2]).ljust(5) + str(row[3]).ljust(5) + str(row[4].strftime('%H:%M')).ljust(10)\
-                + str(row[5].strftime('%H:%M')).ljust(10) + "0".ljust(7) + str("Direct").ljust(14) + str(int(row[8])).ljust(8)\
-                + str(row[7]).ljust(7))
-            count+=1
+        all_rows.sort(key=lambda x:x[6])
 
-        for row in search_query_gc_rows:
-            print(str(count).ljust(6) + str(row[3]).ljust(9) + str(row[4]).ljust(9) + str(row[0]).ljust(5) + str(row[1]).ljust(5) + str(row[10].strftime('%H:%M')).ljust(10)\
-                + str(row[11].strftime('%H:%M')).ljust(10) + "1".ljust(7) + str(row[5]).ljust(14) + str(row[6]).ljust(8)\
-                + str(row[7]).ljust(7))
+        for row in all_rows:
+            print(str(count).ljust(6) + str(row[0]).ljust(9) + str(row[1]).ljust(9) + str(row[2]).ljust(5) + str(row[3]).ljust(5) + str(row[4]).ljust(10)\
+                + str(row[5]).ljust(10) + str(row[6]).ljust(7) + str(row[7]).ljust(14) + str(row[8]).ljust(8)\
+                + str(row[9]).ljust(7))
+
             count += 1
 
     while True:
         entry = input("\n")
         if entry == "":
             break
+
+        elif verify.rowSelection(entry, len(all_rows)):
+            entry = int(entry)-1 # actual position in list of rows
+
+            # MAKE THE BOOKING
+            pass

@@ -57,7 +57,7 @@ def connect(connection_url):
 
 def process(option, connection, current_user):
     if option == 0:
-        search.search_flights(connection)
+        search.search_flights(connection,str(current_user.email))
     if option == 1:
         bookings.list(connection,str(current_user.email))
     if option == 2:
