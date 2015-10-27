@@ -18,7 +18,7 @@ import verify
 import menu
 import cx_Oracle
 import sys
-
+import search
 
 # TODO add comments
 
@@ -55,14 +55,16 @@ def make(user, row, connection):
             # flight no 1 row[0], fare type f1 row[10]
             # flight no 2 row[1], fare type f2 row[11]
             # dep_date row[12]
-            query = "select limit from good_connections WHERE flightno = '{}' AND fare = '{}' ".format(str(row[0]),str(row[10]))
-            seat_1 = database.read(query, cursor)
-            query = "select limit from flight_fares WHERE flightno = '{}' AND fare = '{}' ".format(str(row[1]),str(row[11]))
-            seat_2 = database.read(query, cursor)
 
-            print(seat_1[0])
+            #UPDATE THE VIEWS
+            search.create_views(cursor)
+            query = "select seats from good_connections WHERE flightno1 = '{}' AND flightno2 = '{}' and  a1_fare = '{}'\
+                    and a2_fare = '{}' ".format(str(row[0]),str(row[1]),str(row[10]),str(row[11]))
+            seat = database.read(query, cursor)
 
-            if int(seat_1[0])>0 and int(seat_2[0])>0:
+            print(seat[0])
+
+            if int(seat[0])>0:
                 # query = "UPDATE flight_fares SET limit = limit - 1 WHERE flightno = '{}' AND fare = '{}'".format(str(row[0]),str(row[10]))
                 # cursor.execute(query)
                 # query = "UPDATE flight_fares SET limit = limit - 1 WHERE flightno = '{}' AND fare = '{}'".format(str(row[1]),str(row[11]))
@@ -100,12 +102,14 @@ def make(user, row, connection):
 
 
         else: # direct booking, same procedure one less time
-            query = "select limit from flight_fares WHERE flightno = '{}' AND fare = '{}'".format(str(row[0]),str(row[10]))
-            seat_1 = database.read(query, cursor)
 
-            print(seat_1[0])
+            search.create_views(cursor)
+            query = "select seats from available_flights WHERE flightno = '{}' AND fare = '{}'".format(str(row[0]),str(row[10]))
+            seat = database.read(query, cursor)
 
-            if int(seat_1[0])>0:
+            print(seat[0])
+
+            if int(seat[0])>0:
                 # query = "UPDATE flight_fares SET limit = limit - 1 WHERE flightno = '{}' AND fare = '{}'".format(str(row[0]),str(row[10]))
                 # cursor.execute(query)
                 # connection.commit() # make sure nobody else can take the seats, and we are SAFE
@@ -243,9 +247,6 @@ def list(connection, user):
                                                                                          str(rows[entry][2]),
                                                                                          str(row[2]),
                                                                                          str(row[3]), str(rows[entry][4]))
-                    cursor.execute(query)
-                    query = "DELETE FROM tickets WHERE tno = '{}' and name = '{}'".format(str(rows[entry][0]),
-                                                                                          str(rows[entry][1]))
                     cursor.execute(query)
 
                     query = "SELECT email FROM tickets"
