@@ -15,6 +15,8 @@
 #
 import database
 import verify
+import datetime
+import menu
 
 def create_views(cursor):
     f = open('sql/drop_views.sql')
@@ -75,10 +77,29 @@ def search_flights(connection):
     cursor.execute("ALTER SESSION SET NLS_COMP=LINGUISTIC")
     cursor.execute("ALTER SESSION SET NLS_SORT=BINARY_CI")
 
-    # VERIFY CRAP
-    source = input("Please enter a source: ")
-    destination = input("Please enter a destination: ")
-    departure_date= input("Please enter a departure date (DD-MON-YYYY): ")
+
+    source = ""
+    destination = ""
+    departure_date = ""
+    sort=""
+    while not(verify.char30(source)):
+        source = input("Please enter a source: ").strip()
+        if not(verify.char30(source)):
+            print("Invalid Source Length, Try Again")
+
+    while not(verify.char30(destination)):
+        destination = input("Please enter a destination: ").strip()
+        if not(verify.char30(destination)):
+            print("Invalid Destination Length, Try Again")
+
+    while not(verify.isDateFormat(departure_date)):
+        departure_date= input("Please enter a departure date (DD-MON-YYYY): ").strip()
+        if not(verify.isDateFormat(departure_date)):
+            print("Invalid Date Format, Try Again")
+
+    while sort!="0" and sort!="1":
+        sort = input("Enter 0 to sort by price or 1 to sort by number of connections: ")
+
 
     get_acodes_query = "select acode from airports"
 
@@ -87,7 +108,7 @@ def search_flights(connection):
     if source.upper() and destination.upper() in valid_acodes:
         search_query_gc = "select * from good_connections gc where gc.src='{}' and gc.dst='{}' and \
                         gc.dep_date = to_date('{}', 'dd-mm-yy')\
-                        order by price asc, layover asc".format(source.upper(), destination.upper(), departure_date)
+                        order by price asc, layover asc".format(source, destination, departure_date)
         search_query_af = "select * from available_flights af where af.src='{}' and af.dst='{}' and \
                         af.dep_date = to_date('{}', 'dd-mm-yy') order by price asc".format(source, destination,
                                                                                            departure_date)
@@ -99,7 +120,7 @@ def search_flights(connection):
         search_query_af = "select * from available_flights af where af.a1_name like '%{}%' or af.a1_city like '%{}%'\
                         or af.src  like '%{}%' and af.a2_name like '%{}%' or af.a2_city like '%{}%' or\
                         af.dst like '%{}%' and af.dep_date = to_date('{}', 'dd-mon-yy')\
-                        order by price asc".format(source,source,source.upper(),destination,destination,
+                        order by price asc".format(source,source,source,destination,destination,
                                             destination,departure_date)
 
     cursor.execute(search_query_gc)
@@ -107,10 +128,51 @@ def search_flights(connection):
     cursor.execute(search_query_af)
     search_query_af_rows = cursor.fetchall()
 
+    count = 1
+
+    menu.clearScreen()
+
+    print("Flights Found\n\n" + \
+            "Select Row Number to book or press enter to go back\n\n")
+
+
+    print(str("Row").ljust(6) + str("Fl no1").ljust(9) + str("Fl no2").ljust(9) + str("Src").ljust(5) + str("Dst").ljust(5) + str("Dep Time").ljust(10)\
+        + str("Arr Time").ljust(10) + str("Stops").ljust(7) + str("Layover (hrs)").ljust(14) + str("Price").ljust(8)\
+        + str("Seats").ljust(7))
+
+    x = "-" * 90
+    print(x)
+
+    if sort == "0":
+        price_rows = list()
+        for row in search_query_af_rows:
+            price_rows.append([row[0],"N/A",row[2],row[3],row[4].strftime('%H:%M'),row[5].strftime('%H:%M'),"0","Direct",int(row[8]),row[7]])
+
+        for row in search_query_gc_rows:
+            price_rows.append([row[3],row[4],row[0],row[1],row[10].strftime('%H:%M'),row[11].strftime('%H:%M'),"1",row[5],row[6],row[7]])
+
+        price_rows.sort(key=lambda x:x[8])
+
+        for row in price_rows:
+            print(str(count).ljust(6) + str(row[0]).ljust(9) + str(row[1]).ljust(9) + str(row[2]).ljust(5) + str(row[3]).ljust(5) + str(row[4]).ljust(10)\
+                + str(row[5]).ljust(10) + str(row[6]).ljust(7) + str(row[7]).ljust(14) + str(row[8]).ljust(8)\
+                + str(row[9]).ljust(7))
+
+
+    elif sort == "1":
+        for row in search_query_af_rows:
+            print(str(count).ljust(6) + str(row[0]).ljust(9) + str("N/A").ljust(9) + str(row[2]).ljust(5) + str(row[3]).ljust(5) + str(row[4].strftime('%H:%M')).ljust(10)\
+                + str(row[5].strftime('%H:%M')).ljust(10) + "0".ljust(7) + str("Direct").ljust(14) + str(int(row[8])).ljust(8)\
+                + str(row[7]).ljust(7))
+            count+=1
+
+        for row in search_query_gc_rows:
+            print(str(count).ljust(6) + str(row[3]).ljust(9) + str(row[4]).ljust(9) + str(row[0]).ljust(5) + str(row[1]).ljust(5) + str(row[10].strftime('%H:%M')).ljust(10)\
+                + str(row[11].strftime('%H:%M')).ljust(10) + "1".ljust(7) + str(row[5]).ljust(14) + str(row[6]).ljust(8)\
+                + str(row[7]).ljust(7))
+            count += 1
+
     while True:
-        print(search_query_gc_rows)
-        print(search_query_af_rows)
-
-    # EXECUTE qeury for good_connections
-    # EXECUTE query for available_flights
-
+        entry = input("\n")
+        if entry == "":
+            break

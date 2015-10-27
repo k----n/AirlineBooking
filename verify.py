@@ -27,6 +27,17 @@ def char20(input):
         return False
 
 
+def char30(input):
+    try:
+        if len(input) > 30 or len(input) == 0:
+            return False
+        else:
+            return True
+
+    except:
+        return False
+
+
 def char4(input):
     try:
         if len(input) > 4 or len(input) == 0:
