@@ -177,11 +177,22 @@ def search_flights(connection, user):
             count += 1
 
     while True:
+        round_trip = ""
+
         entry = input("\n")
+
         if entry == "":
             break
 
         elif verify.rowSelection(entry, len(all_rows)):
             entry = int(entry)-1 # actual position in list of rows
 
-            bookings.make(user, all_rows[entry], connection)
+            while round_trip!="yes" and round_trip!="no":
+                round_trip = input("Round Trip? Enter 'yes' or 'no': ")
+
+            if round_trip == "no":
+                bookings.make(user, all_rows[entry], connection)
+
+            elif round_trip=="yes":
+                # new function to get dep date
+                bookings.make(user, all_rows[entry], connection)

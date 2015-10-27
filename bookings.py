@@ -74,11 +74,11 @@ def make(user, row, connection):
 
                 # now we can make our bookings
                 query = "insert into bookings (tno, flightno, fare, dep_date, seat)\
-                        VALUES ('{}','{}','{}','{}','{}')".format(tno, str(row[0]), str(row[10]), str(row[12]), "TBD")
+                        VALUES ('{}','{}','{}','{}','{}')".format(tno, str(row[0]), str(row[10]), str(row[12]), "TBD1")
                 cursor.execute(query) #first part of flight
 
                 query = "insert into bookings (tno, flightno, fare, dep_date, seat)\
-                        VALUES ('{}','{}','{}','{}','{}')".format(tno, str(row[1]), str(row[11]), str(row[12]), "TBD")
+                        VALUES ('{}','{}','{}','{}','{}')".format(tno, str(row[1]), str(row[11]), str(row[12]), "TBD2")
                 cursor.execute(query) #second part of flight
 
                 connection.commit()
@@ -141,6 +141,7 @@ def genTicket(cursor):
 def list(connection, user):
     while True:
         cursor = database.cursor(connection)
+        search.create_views(cursor)
 
         menu.clearScreen()
 
@@ -148,24 +149,27 @@ def list(connection, user):
               "Select Row Number for more details or press enter to go back\n\n")
 
         query = "select  t.tno, t.name, to_char(b.dep_date, 'dd-mon-yy') as dep_date, t.paid_price, b.flightno \
-                from bookings b, tickets t where b.tno = t.tno and t.email = '{}'".format(user)
+                 from bookings b, tickets t where b.tno = t.tno and t.email = '{}'".format(user)
 
         cursor.execute(query)
 
         rows = cursor.fetchall()
 
-        count = 1   # row number
+        count_view = 1
 
         print(str("Row").ljust(6) + str("Tno").ljust(6) + str("Passenger Name").ljust(21) + str("Dep Date").ljust(12)\
-                  +str("Price").ljust(8))
+                   +str("Price").ljust(8))
         x = "-" * 61
         print(x)
 
+        already_seen = []
         if len(rows)!= 0:
             for row in rows:
-                print(str(count).ljust(6) + str(row[0]).ljust(6) + str(row[1]).strip().ljust(21) + str(row[2]).ljust(12)\
-                      +str(row[3]).ljust(8))
-                count += 1
+                entry_string = [row[0],row[1], row[2],row[3]]
+                if entry_string not in already_seen:
+                    print(str(count_view).ljust(6) + str(entry_string[0]).ljust(6) + str(entry_string[1]).strip().ljust(21) + str(entry_string[2]).ljust(12) + str(entry_string[3]).ljust(8))
+                    already_seen.append(entry_string)
+                    count_view+=1
 
         else:
             print("User has no flights")
@@ -174,76 +178,167 @@ def list(connection, user):
         if entry == "":
             break
 
-        elif not(verify.rowSelection(entry, len(rows))):
+        elif not(verify.rowSelection(entry, count_view)):
             print("Invalid entry, Try Again")
 
         elif verify.rowSelection(entry, len(rows)):
-            entry = int(entry)-1 # actual position in list of rows
+            entry = int(count_view)-2 # actual position in list of rows
 
             menu.clearScreen()
 
             print("Detailed Booking\n\n" + \
                   "Press enter to go back or enter 'cancel' to cancel flight\n")
 
-            query = "select  f.src, f.dst, b.seat, b.fare from bookings b, flights f, tickets t where b.tno = t.tno\
+            query = "select count(tno) from bookings where tno = '{}'".format(str(already_seen[entry][0]))
+
+            cursor.execute(query)
+
+            ticket_count = database.read(query, cursor)
+
+            if int(ticket_count[0])>1: # non-direct flight choose from good_connections
+                query = "select  t.tno, to_char(b.dep_date, 'dd-mon-yy') as dep_date, t.paid_price, b.flightno, t.name \
+                 from bookings b, tickets t where b.tno = t.tno and t.tno='{}' and t.email = '{}'".format(str(already_seen[entry][0]),user)
+
+                cursor.execute(query)
+
+                rows = cursor.fetchall()
+
+                query = "select * from good_connections where flightno1 = '{}' or flightno1 = '{}' or flightno2 = '{}'\
+                        or flightno2 = '{}' and price = '{}' \
+                        and dep_date = to_date('{}', 'dd-mon-yy')".format(str(rows[0][3]),str(rows[1][3]),str(rows[1][3]),\
+                                                                          str(rows[0][3]), str(rows[0][2]),str(rows[0][1]))
+
+                cursor.execute(query)
+
+                result = cursor.fetchall()
+
+                #tno is str(already_seen[entry][0])
+
+                for x in result:
+                    if x[6] == str(rows[0][1]):
+                        break
+
+                print("Tno: " + str(already_seen[entry][0]))
+                print("Passenger Name: " + str(rows[0][4]))
+                print("Departure Date: " + str(rows[0][1]))
+                print("Price: " + str(result[0][6]))
+                print("Flight No1: " + str(x[3]))
+                print("Flight No2: " + str(x[4]))
+                print("Flight Source: " +str(x[0]))
+                print("Flight Destination: " + str(x[1]))
+                print("Fare Type1: " + str(x[8]))
+                print("Fare Type2: " + str(x[9]))
+
+                query = "select f.descr, ff.bag_allow from flight_fares ff, fares f where ff.flightno = '{}'\
+                        and ff.fare = '{}' and ff.fare = f.fare".format(str(x[3]), str(x[8]))
+
+                cursor.execute(query)
+
+                additional_rows = cursor.fetchall()
+
+                for add_row in additional_rows:
+                    print("Fare Type1 Description: " + str(add_row[0]))
+                    print("Bags Type1 Allowed: " + str(add_row[1]))
+
+                query = "select f.descr, ff.bag_allow from flight_fares ff, fares f where ff.flightno = '{}'\
+                        and ff.fare = '{}' and ff.fare = f.fare".format(str(x[4]), str(x[9]))
+
+                cursor.execute(query)
+
+                additional_rows = cursor.fetchall()
+
+                for add_row in additional_rows:
+                    print("Fare Type2 Description: " + str(add_row[0]))
+                    print("Bags Type2 Allowed: " + str(add_row[1]))
+
+                while True:
+                    nope = input("\n")
+
+                    if nope == "" :
+                        break
+
+                    elif nope == "cancel":
+                        menu.clearScreen()
+                        print("Canceling booking...")
+
+                        query = "DELETE FROM bookings WHERE tno = '{}' and \
+                                dep_date = to_date('{}', 'dd-mon-yy')".format(str(already_seen[entry][0]), str(rows[0][1]))
+
+                        cursor.execute(query)
+
+                        query = "SELECT email FROM tickets"
+                        users = database.read(query, cursor)
+
+
+                        if user.ljust(20) not in users:
+                            query = "DELETE FROM passengers WHERE email = '{}' and name = '{}'".format(user,
+                                                                                                  str(rows[0][4]))
+                            cursor.execute(query)
+
+                        connection.commit()
+
+                        break
+
+            else: # direct flight
+                query = "select  f.src, f.dst, b.seat, b.fare from bookings b, flights f, tickets t where b.tno = t.tno\
                     and b.flightno = f.flightno and b.tno = '{}' and b.flightno = '{}'\
                     and b.dep_date = to_date('{}', 'dd-mon-yy')".format(str(rows[entry][0]), str(rows[entry][4]),
                                                                         str(rows[entry][2]))
 
-            cursor.execute(query)
+                cursor.execute(query)
 
-            detailed_rows = cursor.fetchall()
+                detailed_rows = cursor.fetchall()
 
-            for row in detailed_rows:
-                print("Tno: " + str(rows[entry][0]))
-                print("Passenger Name: " + str(rows[entry][1]))
-                print("Departure Date: " + str(rows[entry][2]))
-                print("Price: " + str(rows[entry][3]))
-                print("Flight No: " + str(rows[entry][4]))
-                print("Flight Source: " + str(row[0]))
-                print("Flight Destination: " + str(row[1]))
-                print("Seat No: " + str(row[2]))
-                print("Fare Type: " + str(row[3]))
+                for row in detailed_rows:
+                    print("Tno: " + str(rows[entry][0]))
+                    print("Passenger Name: " + str(rows[entry][1]))
+                    print("Departure Date: " + str(rows[entry][2]))
+                    print("Price: " + str(rows[entry][3]))
+                    print("Flight No: " + str(rows[entry][4]))
+                    print("Flight Source: " + str(row[0]))
+                    print("Flight Destination: " + str(row[1]))
+                    print("Seat No: " + str(row[2]))
+                    print("Fare Type: " + str(row[3]))
 
-            query = "select f.descr, ff.bag_allow from flight_fares ff, fares f where ff.flightno = '{}'\
-                    and ff.fare = '{}' and ff.fare = f.fare".format(str(rows[entry][4]), str(row[3]))
+                query = "select f.descr, ff.bag_allow from flight_fares ff, fares f where ff.flightno = '{}'\
+                        and ff.fare = '{}' and ff.fare = f.fare".format(str(rows[entry][4]), str(row[3]))
 
-            cursor.execute(query)
+                cursor.execute(query)
 
-            additional_rows = cursor.fetchall()
+                additional_rows = cursor.fetchall()
 
-            for add_row in additional_rows:
-                print("Fare Description: " + str(add_row[0]))
-                print("Bags Allowed: " + str(add_row[1]))
-
-
-            while True:
-                nope = input("\n")
-
-                if nope == "" :
-                    break
-
-                elif nope == "cancel":
-                    menu.clearScreen()
-                    print("Canceling booking...")
-
-                    query = "DELETE FROM bookings WHERE tno = '{}' and \
-                            dep_date = to_date('{}', 'dd-mon-yy')".format(str(rows[entry][0]), str(rows[entry][2]))
-
-                    cursor.execute(query)
-
-                    query = "SELECT email FROM tickets"
-                    users = database.read(query, cursor)
+                for add_row in additional_rows:
+                    print("Fare Description: " + str(add_row[0]))
+                    print("Bags Allowed: " + str(add_row[1]))
 
 
-                    if user.ljust(20) not in users:
-                        query = "DELETE FROM passengers WHERE email = '{}' and name = '{}'".format(user,
-                                                                                              str(rows[entry][1]))
+                while True:
+                    nope = input("\n")
+
+                    if nope == "" :
+                        break
+
+                    elif nope == "cancel":
+                        menu.clearScreen()
+                        print("Canceling booking...")
+
+                        query = "DELETE FROM bookings WHERE tno = '{}' and \
+                                dep_date = to_date('{}', 'dd-mon-yy')".format(str(rows[entry][0]), str(rows[entry][2]))
+
                         cursor.execute(query)
 
-                    connection.commit()
+                        query = "SELECT email FROM tickets"
+                        users = database.read(query, cursor)
 
-                    break
+
+                        if user.ljust(20) not in users:
+                            query = "DELETE FROM passengers WHERE email = '{}' and name = '{}'".format(user,
+                                                                                                  str(rows[entry][1]))
+                            cursor.execute(query)
+
+                        connection.commit()
+
+                        break
 
         else:
             print("Invalid entry, Try Again")
