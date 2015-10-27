@@ -13,3 +13,104 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
+import database
+import verify
+
+def create_views(cursor):
+    f = open('sql/drop_views.sql')
+    sql_commands = f.read()
+    sql_commands = sql_commands.split(';')
+    view_names = [x.strip() for x in sql_commands]
+    view_names = [x.replace("drop view ","").upper() for x in view_names].pop()
+    print(view_names)
+
+    count = 0
+
+    cursor.execute("select view_name from user_views")
+    output_rows = cursor.fetchall()
+    output_rows = [''.join(i) for i in output_rows]
+
+    for line in output_rows:
+        if line in view_names:
+            count +=1
+
+    if count == len(view_names):
+        for x in range(0, len(sql_commands)-1):
+            cursor.execute(sql_commands[x])
+
+    query = "create view available_flights(flightno,dep_date, src,dst,dep_time,arr_time,fare,seats,\
+            price, a1_name, a2_name, a1_city, a2_city) as select f.flightno, sf.dep_date, f.src, f.dst,\
+            f.dep_time+(trunc(sf.dep_date)-trunc(f.dep_time)), \
+            f.dep_time+(trunc(sf.dep_date)-trunc(f.dep_time))+(f.est_dur/60+a2.tzone-a1.tzone)/24, \
+            fa.fare, fa.limit-count(tno), fa.price, a1.name, a2.name, a1.city, a2.city\
+            from flights f, flight_fares fa, sch_flights sf, bookings b, airports a1, airports a2\
+            where f.flightno=sf.flightno and f.flightno=fa.flightno and f.src=a1.acode and\
+            f.dst=a2.acode and fa.flightno=b.flightno(+) and fa.fare=b.fare(+) and\
+            sf.dep_date=b.dep_date(+)\
+            group by f.flightno, sf.dep_date, f.src, f.dst, f.dep_time, f.est_dur,a2.tzone,\
+            a1.tzone, fa.fare, fa.limit, fa.price, a1.name, a2.name, a1.city, a2.city\
+            having fa.limit-count(tno) > 0"
+
+    cursor.execute(query)
+
+    query = "create view good_connections (src,dst,dep_date,flightno1,flightno2, layover,price, seats,\
+            a1_fare, a2_fare, dep_time, arr_time, a1_name, a2_name, a1_city, a2_city) as\
+            select a1.src, a2.dst, a1.dep_date, a1.flightno, a2.flightno, (a2.dep_time-a1.arr_time)*24,\
+            (a1.price+a2.price),case when a1.seats <= a2.seats then a1.seats else a2.seats end,\
+            a1.fare, a2.fare, a1.dep_time, a2.arr_time, a1.a1_name, a2.a2_name, a1.a1_city, a2.a2_city\
+            from available_flights a1, available_flights a2 where a1.dst=a2.src and a1.src!=a2.dst and  \
+            a1.arr_time<=a2.dep_time group by a1.src, a2.dst, a1.dep_date, a1.flightno, a2.flightno, a2.dep_time, \
+            a1.arr_time, (a1.price+a2.price), case when a1.seats <= a2.seats then a1.seats else a2.seats end, \
+            a1.fare, a2.fare, a1.dep_time, a2.arr_time, a1.a1_name, a2.a2_name, a1.a1_city, a2.a2_city"
+
+    cursor.execute(query)
+
+
+def search_flights(connection):
+    cursor = database.cursor(connection)
+    create_views(cursor)
+    connection.commit()
+
+    # specifying a case insensitive sort
+    cursor.execute("ALTER SESSION SET NLS_COMP=LINGUISTIC")
+    cursor.execute("ALTER SESSION SET NLS_SORT=BINARY_CI")
+
+    # VERIFY CRAP
+    source = input("Please enter a source: ")
+    destination = input("Please enter a destination: ")
+    departure_date= input("Please enter a departure date (DD-MON-YYYY): ")
+
+    get_acodes_query = "select acode from airports"
+
+    valid_acodes = database.read(get_acodes_query,cursor)
+
+    if source.upper() and destination.upper() in valid_acodes:
+        search_query_gc = "select * from good_connections gc where gc.src='{}' and gc.dst='{}' and \
+                        gc.dep_date = to_date('{}', 'dd-mm-yy')\
+                        order by price asc, layover asc".format(source.upper(), destination.upper(), departure_date)
+        search_query_af = "select * from available_flights af where af.src='{}' and af.dst='{}' and \
+                        af.dep_date = to_date('{}', 'dd-mm-yy') order by price asc".format(source, destination,
+                                                                                           departure_date)
+    else:
+        search_query_gc = "select * from good_connections gc where gc.a1_name like '%{}%' or gc.a1_city like '%{}%'\
+                        or gc.src  like '%{}%' and gc.a2_name like '%{}%' or gc.a1_city like '%{}%' or\
+                        gc.src like '%{}%' and gc.dep_date = to_date('{}', 'dd-mon-yy') order by price asc,\
+                        layover asc".format(source,source,source,destination,destination,destination,departure_date)
+        search_query_af = "select * from available_flights af where af.a1_name like '%{}%' or af.a1_city like '%{}%'\
+                        or af.src  like '%{}%' and af.a2_name like '%{}%' or af.a2_city like '%{}%' or\
+                        af.dst like '%{}%' and af.dep_date = to_date('{}', 'dd-mon-yy')\
+                        order by price asc".format(source,source,source.upper(),destination,destination,
+                                            destination,departure_date)
+
+    cursor.execute(search_query_gc)
+    search_query_gc_rows = cursor.fetchall()
+    cursor.execute(search_query_af)
+    search_query_af_rows = cursor.fetchall()
+
+    while True:
+        print(search_query_gc_rows)
+        print(search_query_af_rows)
+
+    # EXECUTE qeury for good_connections
+    # EXECUTE query for available_flights
+

@@ -16,13 +16,12 @@
 
 import sys
 import getpass
-
 import cx_Oracle  # the package used for accessing Oracle in Python
-
 import login
 import menu
 import bookings
 import user
+import search
 
 
 def connect(connection_url):
@@ -57,6 +56,8 @@ def connect(connection_url):
 
 
 def process(option, connection, current_user):
+    if option == 0:
+        search.search_flights(connection)
     if option == 1:
         bookings.list(connection,str(current_user.email))
     if option == 2:
