@@ -55,7 +55,7 @@ def make(user, row, connection):
             # flight no 1 row[0], fare type f1 row[10]
             # flight no 2 row[1], fare type f2 row[11]
             # dep_date row[12]
-            query = "select limit from flight_fares WHERE flightno = '{}' AND fare = '{}' ".format(str(row[0]),str(row[10]))
+            query = "select limit from good_connections WHERE flightno = '{}' AND fare = '{}' ".format(str(row[0]),str(row[10]))
             seat_1 = database.read(query, cursor)
             query = "select limit from flight_fares WHERE flightno = '{}' AND fare = '{}' ".format(str(row[1]),str(row[11]))
             seat_2 = database.read(query, cursor)
@@ -63,11 +63,11 @@ def make(user, row, connection):
             print(seat_1[0])
 
             if int(seat_1[0])>0 and int(seat_2[0])>0:
-                query = "UPDATE flight_fares SET limit = limit - 1 WHERE flightno = '{}' AND fare = '{}'".format(str(row[0]),str(row[10]))
-                cursor.execute(query)
-                query = "UPDATE flight_fares SET limit = limit - 1 WHERE flightno = '{}' AND fare = '{}'".format(str(row[1]),str(row[11]))
-                cursor.execute(query)
-                connection.commit() # make sure nobody else can take the seats, and we are SAFE
+                # query = "UPDATE flight_fares SET limit = limit - 1 WHERE flightno = '{}' AND fare = '{}'".format(str(row[0]),str(row[10]))
+                # cursor.execute(query)
+                # query = "UPDATE flight_fares SET limit = limit - 1 WHERE flightno = '{}' AND fare = '{}'".format(str(row[1]),str(row[11]))
+                # cursor.execute(query)
+                # connection.commit() # make sure nobody else can take the seats, and we are SAFE
 
                 print("Creating booking...\n")
 
@@ -106,9 +106,9 @@ def make(user, row, connection):
             print(seat_1[0])
 
             if int(seat_1[0])>0:
-                query = "UPDATE flight_fares SET limit = limit - 1 WHERE flightno = '{}' AND fare = '{}'".format(str(row[0]),str(row[10]))
-                cursor.execute(query)
-                connection.commit() # make sure nobody else can take the seats, and we are SAFE
+                # query = "UPDATE flight_fares SET limit = limit - 1 WHERE flightno = '{}' AND fare = '{}'".format(str(row[0]),str(row[10]))
+                # cursor.execute(query)
+                # connection.commit() # make sure nobody else can take the seats, and we are SAFE
 
                 print("Creating booking...\n")
 
@@ -235,9 +235,9 @@ def list(connection, user):
                 elif nope == "cancel":
                     menu.clearScreen()
                     print("Canceling booking...")
-                    query = "UPDATE flight_fares SET limit = limit + 1\
-                             WHERE flightno = '{}' AND fare = '{}'".format(str(row[2]),str(row[3]))
-                    cursor.execute(query)
+                    # query = "UPDATE flight_fares SET limit = limit + 1\
+                    #          WHERE flightno = '{}' AND fare = '{}'".format(str(row[2]),str(row[3]))
+                    # cursor.execute(query)
                     query = "DELETE FROM bookings WHERE tno = '{}' and dep_date = to_date('{}', 'dd-mon-yy') \
                              and seat = '{}' and fare = '{}' and flightno = '{}'".format(str(rows[entry][0]),
                                                                                          str(rows[entry][2]),
