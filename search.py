@@ -74,6 +74,7 @@ def search(connection):
 
         cursor.execute(good_flights_query)
 
+
     get_acodes_query = "select acode from airports"
     cursor.execute(get_acodes_query)
     rows = cursor.fetchall()
