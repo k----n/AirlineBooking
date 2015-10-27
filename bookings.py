@@ -231,6 +231,8 @@ def round_trip(user, row, return_date, connection):
                 print("Booking created successfully")
                 print("Tno:{} under {}".format(tno,name))
 
+                print("\nGoing to select your return trip...")
+
 
                 sort = ""
                 while sort!="0" and sort!="1":
@@ -261,40 +263,40 @@ def round_trip(user, row, return_date, connection):
                         "Select Row Number to book or press enter to cancel\n\n")
 
                 print(str("Row").ljust(6) + str("Fl no1").ljust(9) + str("Fl no2").ljust(9) + str("Src").ljust(5) + str("Dst").ljust(5) + str("Dep Time").ljust(10)\
-                    + str("Arr Time").ljust(10) + str("Stops").ljust(7) + str("Layover(hrs)").ljust(14) + str("Price").ljust(8)\
+                    + str("Arr Time").ljust(10) + str("Stops").ljust(7) + str("Layover(hrs)").ljust(14) + str("Total Price").ljust(14)\
                     + str("Seats").ljust(7))
 
-                x = "-" * 90
+                x = "-" * 98
                 print(x)
 
-                all_rows = []
-                for row in search_query_af_rows:
-                    all_rows.append([row[0],"N/A",row[2],row[3],row[4].strftime('%H:%M'),row[5].strftime('%H:%M'),"0","Direct",int(row[8]),row[7],row[6],"N/A", departure_date])
+                all_roxs = []
+                for rox in search_query_af_rows:
+                    all_roxs.append([rox[0],"N/A",rox[2],rox[3],rox[4].strftime('%H:%M'),rox[5].strftime('%H:%M'),"0","Direct",int(rox[8])+row[8],rox[7],rox[6],"N/A", departure_date])
 
-                for row in search_query_gc_rows:
-                    all_rows.append([row[3],row[4],row[0],row[1],row[10].strftime('%H:%M'),row[11].strftime('%H:%M'),"1","{0:.2f}".format(row[5]),row[6],row[7],row[8], row[9], departure_date])
+                for rox in search_query_gc_rows:
+                    all_roxs.append([rox[3],rox[4],rox[0],rox[1],rox[10].strftime('%H:%M'),rox[11].strftime('%H:%M'),"1","{0:.2f}".format(rox[5]),rox[6]+row[8],rox[7],rox[8], rox[9], departure_date])
 
                 if len(search_query_af_rows) == 0 and len(search_query_gc_rows) == 0:
                     print("No flights found")
 
                 elif sort == "0":
-                    all_rows.sort(key=lambda x:x[8])
+                    all_roxs.sort(key=lambda x:x[8])
 
-                    for row in all_rows:
-                        print(str(count).ljust(6) + str(row[0]).ljust(9) + str(row[1]).ljust(9) + str(row[2]).ljust(5) + str(row[3]).ljust(5) + str(row[4]).ljust(10)\
-                            + str(row[5]).ljust(10) + str(row[6]).ljust(7) + str(row[7]).ljust(14) + str(row[8]).ljust(8)\
-                            + str(row[9]).ljust(7))
+                    for rox in all_roxs:
+                        print(str(count).ljust(6) + str(rox[0]).ljust(9) + str(rox[1]).ljust(9) + str(rox[2]).ljust(5) + str(rox[3]).ljust(5) + str(rox[4]).ljust(10)\
+                            + str(rox[5]).ljust(10) + str(rox[6]).ljust(7) + str(rox[7]).ljust(14) + str(rox[8]).ljust(14)\
+                            + str(rox[9]).ljust(7))
 
                         count += 1
 
 
                 elif sort == "1":
-                    all_rows.sort(key=lambda x:x[6])
+                    all_roxs.sort(key=lambda x:x[6])
 
-                    for row in all_rows:
-                        print(str(count).ljust(6) + str(row[0]).ljust(9) + str(row[1]).ljust(9) + str(row[2]).ljust(5) + str(row[3]).ljust(5) + str(row[4]).ljust(10)\
-                            + str(row[5]).ljust(10) + str(row[6]).ljust(7) + str(row[7]).ljust(14) + str(row[8]).ljust(8)\
-                            + str(row[9]).ljust(7))
+                    for rox in all_roxs:
+                        print(str(count).ljust(6) + str(rox[0]).ljust(9) + str(rox[1]).ljust(9) + str(rox[2]).ljust(5) + str(rox[3]).ljust(5) + str(rox[4]).ljust(10)\
+                            + str(rox[5]).ljust(10) + str(rox[6]).ljust(7) + str(rox[7]).ljust(14) + str(rox[8]).ljust(14)\
+                            + str(rox[9]).ljust(7))
 
                         count += 1
 
@@ -304,9 +306,9 @@ def round_trip(user, row, return_date, connection):
                     if entry == "":
                         break
 
-                    elif verify.rowSelection(entry, len(all_rows)):
-                        entry = int(entry)-1 # actual position in list of rows
-                        make(user,all_rows[entry], connection)
+                    elif verify.rowSelection(entry, len(all_roxs)):
+                        entry = int(entry)-1 # actual position in list of roxs
+                        make(user,all_roxs[entry], connection)
 
             else:
                 print("Booking failed, try again")
