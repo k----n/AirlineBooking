@@ -194,5 +194,11 @@ def search_flights(connection, user):
                 bookings.make(user, all_rows[entry], connection)
 
             elif round_trip=="yes":
-                # new function to get dep date
-                bookings.make(user, all_rows[entry], connection)
+                return_date = ""
+                while not(verify.isDateFormat(return_date)):
+                    return_date= input("Please enter a return date (DD-MON-YYYY): ").strip()
+                    if not(verify.isDateFormat(return_date)):
+                        print("Invalid Date Format, Try Again")
+
+                bookings.round_trip(user, all_rows[entry],return_date, connection)
+

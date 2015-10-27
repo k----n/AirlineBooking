@@ -23,8 +23,6 @@ import verify
 import menu
 
 
-#TODO comment
-
 def login(connection):
     cursor = database.cursor(connection)
 

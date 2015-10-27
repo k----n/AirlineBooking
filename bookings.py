@@ -20,7 +20,6 @@ import cx_Oracle
 import sys
 import search
 
-# TODO add comments
 
 def make(user, row, connection):
     cursor = database.cursor(connection)
@@ -130,6 +129,196 @@ def make(user, row, connection):
         print(sys.stderr, "Oracle message:", error.message)
         print("Booking failed, try again")
         return False
+
+
+def round_trip(user, row, return_date, connection):
+    cursor = database.cursor(connection)
+    search.create_views(cursor)
+    connection.commit()
+
+    try:
+        query = "SELECT name FROM passengers where email='{}'".format(user)
+        names = database.read(query, cursor)
+
+        name=""
+        while not(verify.char20(name)):
+            name = input("Please enter a name: ").strip()
+            if not(verify.char20(name)):
+                print("Invalid Name Length, Try Again")
+
+        if name.strip().ljust(20) not in names:
+            print("Creating passenger...\n")
+            country=""
+
+            while not(verify.char10(country)):
+                country = input("Please enter a country: ").strip()
+                if not(verify.char10(country)):
+                    print("Invalid Country Name Length, Try Again")
+
+            query = "INSERT INTO passengers (email, name, country) VALUES  ('{}','{}','{}')".format(user, str(name), str(country))
+
+            cursor.execute(query)
+
+            connection.commit()
+
+        tno = genTicket(cursor)
+
+        if row[7] != "Direct": # not a direct booking multiple tickets needed
+            # flight no 1 row[0], fare type f1 row[10]
+            # flight no 2 row[1], fare type f2 row[11]
+            # dep_date row[12]
+
+            #UPDATE THE VIEWS
+            search.create_views(cursor)
+            query = "select seats from good_connections WHERE flightno1 = '{}' AND flightno2 = '{}' and  a1_fare = '{}'\
+                    and a2_fare = '{}' ".format(str(row[0]),str(row[1]),str(row[10]),str(row[11]))
+            seat = database.read(query, cursor)
+
+            if int(seat[0])>0:
+                print("Creating booking...\n")
+
+                #generate our ticket
+                #price row[8]
+                query = "insert into tickets (tno, name, email, paid_price)\
+                         VALUES ('{}','{}','{}','{}')".format(tno, name, user, str(row[8]))
+
+                cursor.execute(query)
+
+                # now we can make our bookings
+                query = "insert into bookings (tno, flightno, fare, dep_date, seat)\
+                        VALUES ('{}','{}','{}','{}','{}')".format(tno, str(row[0]), str(row[10]), str(row[12]), "TBD1")
+                cursor.execute(query) #first part of flight
+
+                query = "insert into bookings (tno, flightno, fare, dep_date, seat)\
+                        VALUES ('{}','{}','{}','{}','{}')".format(tno, str(row[1]), str(row[11]), str(row[12]), "TBD2")
+                cursor.execute(query) #second part of flight
+
+                connection.commit()
+
+                print("Booking created successfully")
+                print("Tno:{} under {}".format(tno,name))
+                return True
+
+
+            else:
+                print("Booking failed, try again")
+                return False
+
+
+        else: # direct booking, same procedure one less time
+
+            search.create_views(cursor)
+            query = "select seats from available_flights WHERE flightno = '{}' AND fare = '{}'".format(str(row[0]),str(row[10]))
+            seat = database.read(query, cursor)
+
+
+            if int(seat[0])>0:
+                print("Creating booking...\n")
+
+                #generate our ticket
+                #price row[8]
+                query = "insert into tickets (tno, name, email, paid_price)\
+                         VALUES ('{}','{}','{}','{}')".format(tno, name, user, str(row[8]))
+
+                cursor.execute(query)
+
+                query = "insert into bookings (tno, flightno, fare, dep_date, seat)\
+                        VALUES ('{}','{}','{}','{}','{}')".format(tno, str(row[0]), str(row[10]), str(row[12]), "TBD")
+                cursor.execute(query)
+
+                connection.commit()
+
+                print("Booking created successfully")
+                print("Tno:{} under {}".format(tno,name))
+
+
+                sort = ""
+                while sort!="0" and sort!="1":
+                    sort = input("Enter 0 to sort by price or 1 to sort by number of connections for return trip: ")
+
+                source = row[3]
+                destination = row[2]
+                departure_date = return_date
+
+                search_query_gc = "select * from good_connections gc where gc.src='{}' and gc.dst='{}' and \
+                                    gc.dep_date = to_date('{}', 'dd-mm-yy')\
+                                    order by price asc, layover asc".format(source, destination, departure_date)
+
+                search_query_af = "select * from available_flights af where af.src='{}' and af.dst='{}' and \
+                                    af.dep_date = to_date('{}', 'dd-mm-yy') order by price asc".format(source, destination,
+                                                                                                       departure_date)
+
+                cursor.execute(search_query_gc)
+                search_query_gc_rows = cursor.fetchall()
+                cursor.execute(search_query_af)
+                search_query_af_rows = cursor.fetchall()
+
+                count = 1
+
+                menu.clearScreen()
+
+                print("Return Trips Found\n\n" + \
+                        "Select Row Number to book or press enter to cancel\n\n")
+
+                print(str("Row").ljust(6) + str("Fl no1").ljust(9) + str("Fl no2").ljust(9) + str("Src").ljust(5) + str("Dst").ljust(5) + str("Dep Time").ljust(10)\
+                    + str("Arr Time").ljust(10) + str("Stops").ljust(7) + str("Layover(hrs)").ljust(14) + str("Price").ljust(8)\
+                    + str("Seats").ljust(7))
+
+                x = "-" * 90
+                print(x)
+
+                all_rows = []
+                for row in search_query_af_rows:
+                    all_rows.append([row[0],"N/A",row[2],row[3],row[4].strftime('%H:%M'),row[5].strftime('%H:%M'),"0","Direct",int(row[8]),row[7],row[6],"N/A", departure_date])
+
+                for row in search_query_gc_rows:
+                    all_rows.append([row[3],row[4],row[0],row[1],row[10].strftime('%H:%M'),row[11].strftime('%H:%M'),"1","{0:.2f}".format(row[5]),row[6],row[7],row[8], row[9], departure_date])
+
+                if len(search_query_af_rows) == 0 and len(search_query_gc_rows) == 0:
+                    print("No flights found")
+
+                elif sort == "0":
+                    all_rows.sort(key=lambda x:x[8])
+
+                    for row in all_rows:
+                        print(str(count).ljust(6) + str(row[0]).ljust(9) + str(row[1]).ljust(9) + str(row[2]).ljust(5) + str(row[3]).ljust(5) + str(row[4]).ljust(10)\
+                            + str(row[5]).ljust(10) + str(row[6]).ljust(7) + str(row[7]).ljust(14) + str(row[8]).ljust(8)\
+                            + str(row[9]).ljust(7))
+
+                        count += 1
+
+
+                elif sort == "1":
+                    all_rows.sort(key=lambda x:x[6])
+
+                    for row in all_rows:
+                        print(str(count).ljust(6) + str(row[0]).ljust(9) + str(row[1]).ljust(9) + str(row[2]).ljust(5) + str(row[3]).ljust(5) + str(row[4]).ljust(10)\
+                            + str(row[5]).ljust(10) + str(row[6]).ljust(7) + str(row[7]).ljust(14) + str(row[8]).ljust(8)\
+                            + str(row[9]).ljust(7))
+
+                        count += 1
+
+                while True:
+                    entry = input("\n")
+
+                    if entry == "":
+                        break
+
+                    elif verify.rowSelection(entry, len(all_rows)):
+                        entry = int(entry)-1 # actual position in list of rows
+                        make(user,all_rows[entry], connection)
+
+            else:
+                print("Booking failed, try again")
+                return False
+
+    except:
+            error, = cx_Oracle.DatabaseError.args
+            print(sys.stderr, "Oracle code:", error.code)
+            print(sys.stderr, "Oracle message:", error.message)
+            print("Booking failed, try again")
+            return False
+
 
 def genTicket(cursor):
     query = "SELECT tno FROM tickets"
@@ -342,7 +531,3 @@ def list(connection, user):
 
         else:
             print("Invalid entry, Try Again")
-
-
-
-
