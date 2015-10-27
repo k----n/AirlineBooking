@@ -143,7 +143,10 @@ def search_flights(connection):
     x = "-" * 90
     print(x)
 
-    if sort == "0":
+    if len(search_query_af_rows) == 0 and len(search_query_gc_rows) == 0:
+        print("No flights found")
+
+    elif sort == "0":
         price_rows = list()
         for row in search_query_af_rows:
             price_rows.append([row[0],"N/A",row[2],row[3],row[4].strftime('%H:%M'),row[5].strftime('%H:%M'),"0","Direct",int(row[8]),row[7]])
