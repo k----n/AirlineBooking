@@ -1,5 +1,5 @@
 #
-#   Copyright 2015 Kalvin Eng
+#   Copyright 2015 Kalvin Eng, Steven Chang
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ import database
 import verify
 import datetime
 import menu
+import bookings
 
 def create_views(cursor):
     f = open('sql/drop_views.sql')
@@ -61,7 +62,8 @@ def create_views(cursor):
             (a1.price+a2.price),case when a1.seats <= a2.seats then a1.seats else a2.seats end,\
             a1.fare, a2.fare, a1.dep_time, a2.arr_time, a1.a1_name, a2.a2_name, a1.a1_city, a2.a2_city\
             from available_flights a1, available_flights a2 where a1.dst=a2.src and a1.src!=a2.dst and  \
-            a1.arr_time<=a2.dep_time group by a1.src, a2.dst, a1.dep_date, a1.flightno, a2.flightno, a2.dep_time, \
+            a1.arr_time<=a2.dep_time and a1.arr_time + 3/4 >=a2.dep_time group by a1.src, a2.dst, a1.dep_date,\
+            a1.flightno, a2.flightno, a2.dep_time, \
             a1.arr_time, (a1.price+a2.price), case when a1.seats <= a2.seats then a1.seats else a2.seats end, \
             a1.fare, a2.fare, a1.dep_time, a2.arr_time, a1.a1_name, a2.a2_name, a1.a1_city, a2.a2_city"
 
@@ -137,7 +139,7 @@ def search_flights(connection, user):
 
 
     print(str("Row").ljust(6) + str("Fl no1").ljust(9) + str("Fl no2").ljust(9) + str("Src").ljust(5) + str("Dst").ljust(5) + str("Dep Time").ljust(10)\
-        + str("Arr Time").ljust(10) + str("Stops").ljust(7) + str("Layover (hrs)").ljust(14) + str("Price").ljust(8)\
+        + str("Arr Time").ljust(10) + str("Stops").ljust(7) + str("Layover(hrs)").ljust(14) + str("Price").ljust(8)\
         + str("Seats").ljust(7))
 
     x = "-" * 90
@@ -145,10 +147,10 @@ def search_flights(connection, user):
 
     all_rows = list()
     for row in search_query_af_rows:
-        all_rows.append([row[0],"N/A",row[2],row[3],row[4].strftime('%H:%M'),row[5].strftime('%H:%M'),"0","Direct",int(row[8]),row[7]])
+        all_rows.append([row[0],"N/A",row[2],row[3],row[4].strftime('%H:%M'),row[5].strftime('%H:%M'),"0","Direct",int(row[8]),row[7],row[6],"N/A", departure_date])
 
     for row in search_query_gc_rows:
-        all_rows.append([row[3],row[4],row[0],row[1],row[10].strftime('%H:%M'),row[11].strftime('%H:%M'),"1",row[5],row[6],row[7]])
+        all_rows.append([row[3],row[4],row[0],row[1],row[10].strftime('%H:%M'),row[11].strftime('%H:%M'),"1","{0:.2f}".format(row[5]),row[6],row[7],row[8], row[9], departure_date])
 
     if len(search_query_af_rows) == 0 and len(search_query_gc_rows) == 0:
         print("No flights found")
@@ -182,5 +184,4 @@ def search_flights(connection, user):
         elif verify.rowSelection(entry, len(all_rows)):
             entry = int(entry)-1 # actual position in list of rows
 
-            # MAKE THE BOOKING
-            pass
+            bookings.make(user, all_rows[entry], connection)

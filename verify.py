@@ -16,6 +16,17 @@
 import time
 
 
+def char10(input):
+    try:
+        if len(input) > 10 or len(input) == 0:
+            return False
+        else:
+            return True
+
+    except:
+        return False
+
+
 def char20(input):
     try:
         if len(input) > 20 or len(input) == 0:
