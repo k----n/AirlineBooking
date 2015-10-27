@@ -57,7 +57,7 @@ def isTimeFormat(input):
 
 def isDateFormat(input):
     try:
-        time.strptime(input, '%d-%m-%Y')
+        time.strptime(input, '%d-%b-%Y')
         return True
     except ValueError:
         return False
