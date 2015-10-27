@@ -114,11 +114,11 @@ def search_flights(connection):
                                                                                            departure_date)
     else:
         search_query_gc = "select * from good_connections gc where gc.a1_name like '%{}%' or gc.a1_city like '%{}%'\
-                        or gc.src  like '%{}%' and gc.a2_name like '%{}%' or gc.a1_city like '%{}%' or\
+                        or gc.src  like '%{}%' or gc.a2_name like '%{}%' or gc.a1_city like '%{}%' or\
                         gc.src like '%{}%' and gc.dep_date = to_date('{}', 'dd-mon-yy') order by price asc,\
                         layover asc".format(source,source,source,destination,destination,destination,departure_date)
         search_query_af = "select * from available_flights af where af.a1_name like '%{}%' or af.a1_city like '%{}%'\
-                        or af.src  like '%{}%' and af.a2_name like '%{}%' or af.a2_city like '%{}%' or\
+                        or af.src  like '%{}%' or af.a2_name like '%{}%' or af.a2_city like '%{}%' or\
                         af.dst like '%{}%' and af.dep_date = to_date('{}', 'dd-mon-yy')\
                         order by price asc".format(source,source,source,destination,destination,
                                             destination,departure_date)
