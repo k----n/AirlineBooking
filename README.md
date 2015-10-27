@@ -4,7 +4,7 @@ A simple airline booking system implemented in Python using Oracle SQL.
 ## To Be Implemented
 ### User Functions
 1. [x] Login Screen
-2. [ ] Searching for flights
+2. [x] Searching for flights
 3. [ ] Making a booking
 4. [x] List existing bookings
 5. [x] Cancel bookings
